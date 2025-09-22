@@ -6,8 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, ArrowLeft } from "lucide-react";
-import logoImage from "@/assets/logo.png";
+import { Leaf, Upload, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const AuthPage = () => {
@@ -48,7 +47,7 @@ const AuthPage = () => {
           </Button>
           
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <img src={logoImage} alt="Ved-Aahaar" className="h-8 w-8" />
+            <Leaf className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold sanskrit-title gradient-text">Ved-Aahaar</h1>
           </div>
           <p className="text-muted-foreground">

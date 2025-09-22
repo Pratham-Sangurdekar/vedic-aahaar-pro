@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import logoImage from "@/assets/logo.png";
 import { 
+  Leaf, 
   Calendar, 
   TrendingUp, 
   Heart, 
   Brain, 
-  Sparkles,
+  Sparkles, 
   User, 
   ChefHat,
   Calculator,
@@ -94,7 +94,7 @@ const PatientDashboard = () => {
       <header className="px-6 py-4 bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <img src={logoImage} alt="Ved-Aahaar" className="h-8 w-8" />
+            <Leaf className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold sanskrit-title gradient-text">Ved-Aahaar</h1>
           </div>
           
@@ -323,10 +323,7 @@ const PatientDashboard = () => {
                 
                 <div className="space-y-2">
                   <Label>Food Preferences & Restrictions</Label>
-                  <Textarea 
-                    placeholder="e.g., allergic to nuts, prefer warm foods, avoid dairy..." 
-                    defaultValue=""
-                  />
+                  <Textarea placeholder="e.g., allergic to nuts, prefer warm foods, avoid dairy..." />
                 </div>
                 
                 <Button className="w-full mystic-glow transition-mystic" size="lg">
@@ -524,7 +521,7 @@ const PatientDashboard = () => {
                       <Textarea 
                         id="medical-history" 
                         placeholder="Any health conditions, allergies, or ongoing treatments..."
-                        defaultValue="Mild hypertension, managed with lifestyle changes. No known allergies."
+                        value="Mild hypertension, managed with lifestyle changes. No known allergies."
                       />
                     </div>
                     
@@ -533,7 +530,7 @@ const PatientDashboard = () => {
                       <Textarea 
                         id="dietary-prefs" 
                         placeholder="Food preferences, restrictions, etc..."
-                        defaultValue="Vegetarian, prefer warm foods, avoid dairy after 6 PM"
+                        value="Vegetarian, prefer warm foods, avoid dairy after 6 PM"
                       />
                     </div>
                     

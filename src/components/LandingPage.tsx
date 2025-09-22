@@ -2,8 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import heroImage from "@/assets/ayurvedic-spices-hero.jpg";
-import { ArrowRight, Calculator, Users, User, Sparkles, Heart, Brain } from "lucide-react";
-import logoImage from "@/assets/logo.png";
+import { ArrowRight, Leaf, Calculator, Users, User, Sparkles, Heart, Brain } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const LandingPage = () => {
@@ -13,7 +12,7 @@ const LandingPage = () => {
     {
       title: "Ayurvedic Diet Generator",
       description: "AI-powered personalized diet plans based on ancient Vedic principles and your unique constitution.",
-      icon: <img src={logoImage} alt="Ved-Aahaar" className="h-8 w-8" />,
+      icon: <Leaf className="h-8 w-8" />,
       image: "Generate custom meal plans that balance your doshas and promote holistic wellness."
     },
     {
@@ -57,7 +56,7 @@ const LandingPage = () => {
       <header className="px-6 py-4 bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <img src={logoImage} alt="Ved-Aahaar" className="h-8 w-8" />
+            <Leaf className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold sanskrit-title gradient-text">
               Ved-Aahaar
             </h1>
@@ -229,7 +228,7 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <img src={logoImage} alt="Ved-Aahaar" className="h-6 w-6" />
+                <Leaf className="h-6 w-6 text-primary" />
                 <span className="text-lg font-bold sanskrit-title gradient-text">Ved-Aahaar</span>
               </div>
               <p className="text-muted-foreground text-sm">
