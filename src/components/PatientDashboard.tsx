@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import logoImage from "@/assets/logo.png";
 import { 
-  Leaf, 
   Calendar, 
   TrendingUp, 
   Heart, 
   Brain, 
-  Sparkles, 
+  Sparkles,
   User, 
   ChefHat,
   Calculator,
@@ -94,7 +94,7 @@ const PatientDashboard = () => {
       <header className="px-6 py-4 bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Leaf className="h-8 w-8 text-primary" />
+            <img src={logoImage} alt="Ved-Aahaar" className="h-8 w-8" />
             <h1 className="text-2xl font-bold sanskrit-title gradient-text">Ved-Aahaar</h1>
           </div>
           
