@@ -323,10 +323,7 @@ const PatientDashboard = () => {
                 
                 <div className="space-y-2">
                   <Label>Food Preferences & Restrictions</Label>
-                  <Textarea 
-                    placeholder="e.g., allergic to nuts, prefer warm foods, avoid dairy..." 
-                    defaultValue=""
-                  />
+                  <Textarea placeholder="e.g., allergic to nuts, prefer warm foods, avoid dairy..." />
                 </div>
                 
                 <Button className="w-full mystic-glow transition-mystic" size="lg">
@@ -524,7 +521,7 @@ const PatientDashboard = () => {
                       <Textarea 
                         id="medical-history" 
                         placeholder="Any health conditions, allergies, or ongoing treatments..."
-                        defaultValue="Mild hypertension, managed with lifestyle changes. No known allergies."
+                        value="Mild hypertension, managed with lifestyle changes. No known allergies."
                       />
                     </div>
                     
@@ -533,7 +530,7 @@ const PatientDashboard = () => {
                       <Textarea 
                         id="dietary-prefs" 
                         placeholder="Food preferences, restrictions, etc..."
-                        defaultValue="Vegetarian, prefer warm foods, avoid dairy after 6 PM"
+                        value="Vegetarian, prefer warm foods, avoid dairy after 6 PM"
                       />
                     </div>
                     
