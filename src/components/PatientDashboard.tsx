@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Leaf, 
   Calendar, 
@@ -19,77 +19,217 @@ import {
   ChefHat,
   Calculator,
   Stethoscope,
-  Moon,
-  Sun,
   Settings,
-  MessageCircle
+  MessageCircle,
+  BookOpen
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Patient {
+  id: string;
+  name: string;
+  email: string;
+  age: number;
+  gender: string;
+  height?: number;
+  weight?: number;
+  medical_history?: string;
+  food_preferences?: string;
+  food_restrictions?: string;
+}
+
+interface Recipe {
+  id: string;
+  title: string;
+  description: string;
+  ingredients: string[];
+  instructions: string;
+  created_at: string;
+  doctor: {
+    name: string;
+  };
+}
+
+interface DoctorPost {
+  id: string;
+  content: string;
+  created_at: string;
+  doctor: {
+    name: string;
+  };
+}
 
 const PatientDashboard = () => {
-  const navigate = useNavigate();
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [patient, setPatient] = useState<Patient | null>(null);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [doctorPosts, setDoctorPosts] = useState<DoctorPost[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const recipes = [
-    {
-      title: "Golden Turmeric Milk",
-      description: "Soothing anti-inflammatory drink perfect for evening relaxation and joint health.",
-      rasa: "Sweet, Bitter",
-      guna: "Heavy, Oily",
-      effect: "Kapha-Pitta balancing",
-      calories: 150,
-      time: "5 mins",
-      author: "Dr. Priya Sharma"
-    },
-    {
-      title: "Ayurvedic Quinoa Bowl",
-      description: "Nutrient-rich bowl with seasonal vegetables and digestive spices.",
-      rasa: "Sweet, Astringent",
-      guna: "Light, Dry",
-      effect: "Vata-Pitta balancing",
-      calories: 320,
-      time: "25 mins",
-      author: "Dr. Rajesh Kumar"
-    },
-    {
-      title: "Cooling Cucumber Raita",
-      description: "Traditional yogurt-based side dish to balance excess heat and support digestion.",
-      rasa: "Sweet, Astringent",
-      guna: "Cool, Heavy",
-      effect: "Pitta pacifying",
-      calories: 80,
-      time: "10 mins",
-      author: "Dr. Meera Nair"
+  useEffect(() => {
+    if (user) {
+      fetchPatientData();
+      fetchRecipes();
+      fetchDoctorPosts();
     }
-  ];
+  }, [user]);
 
-  const doctorPosts = [
-    {
-      author: "Dr. Priya Sharma",
-      title: "Understanding Your Dosha Constitution",
-      content: "Each individual has a unique constitution (Prakriti) that determines their optimal diet and lifestyle. Understanding whether you're predominantly Vata, Pitta, or Kapha helps in creating personalized nutrition plans.",
-      time: "2 hours ago",
-      likes: 24,
-      comments: 8
-    },
-    {
-      author: "Dr. Rajesh Kumar", 
-      title: "Seasonal Eating According to Ayurveda",
-      content: "Ayurveda emphasizes eating according to seasons. As we transition into autumn, focus on warm, grounding foods like root vegetables, warming spices, and cooked grains to balance increasing Vata.",
-      time: "1 day ago",
-      likes: 31,
-      comments: 12
+  const fetchPatientData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+      setPatient(data);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
   };
 
+  const fetchRecipes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('recipes')
+        .select(`
+          *,
+          doctor:doctors(name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (error) throw error;
+      setRecipes(data || []);
+    } catch (error: any) {
+      console.error('Error fetching recipes:', error);
+    }
+  };
+
+  const fetchDoctorPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('doctor_posts')
+        .select(`
+          *,
+          doctor:doctors(name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      setDoctorPosts(data || []);
+    } catch (error: any) {
+      console.error('Error fetching doctor posts:', error);
+    }
+  };
+
+  const handleGenerateDiet = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    
+    const goal = formData.get('goal') as string;
+    const concern = formData.get('concern') as string;
+    const restrictions = formData.get('restrictions') as string;
+
+    const dietPlan = {
+      goal,
+      concern,
+      restrictions,
+      generated_at: new Date().toISOString(),
+      recommendations: [
+        "Include warm, cooked foods to support digestion",
+        "Favor sweet, sour, and salty tastes to balance Vata",
+        "Avoid cold, raw foods and excessive bitter/astringent tastes",
+        "Eat at regular times and avoid skipping meals"
+      ]
+    };
+
+    try {
+      const { error } = await supabase
+        .from('diet_charts')
+        .insert({
+          patient_id: user?.id,
+          generated_diet: dietPlan,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Your personalized diet plan has been generated!",
+      });
+
+      (e.target as HTMLFormElement).reset();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    
+    const updates = {
+      name: formData.get('name') as string,
+      age: parseInt(formData.get('age') as string),
+      height: parseFloat(formData.get('height') as string) || null,
+      weight: parseFloat(formData.get('weight') as string) || null,
+      medical_history: formData.get('medical_history') as string,
+      food_preferences: formData.get('food_preferences') as string,
+      food_restrictions: formData.get('food_restrictions') as string,
+    };
+
+    try {
+      const { error } = await supabase
+        .from('patients')
+        .update(updates)
+        .eq('id', user?.id);
+
+      if (error) throw error;
+
+      setPatient(prev => prev ? { ...prev, ...updates } : null);
+      toast({
+        title: "Success",
+        description: "Profile updated successfully!",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your wellness journey...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`min-h-screen bg-background transition-mystic ${isDarkMode ? 'dark' : ''}`}>
+    <div className="min-h-screen bg-background transition-mystic">
       {/* Header */}
       <header className="px-6 py-4 bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -121,11 +261,11 @@ const PatientDashboard = () => {
               Ankhan
             </Button>
             <Button 
-              variant={activeTab === "doctor" ? "default" : "ghost"}
-              onClick={() => setActiveTab("doctor")}
+              variant={activeTab === "education" ? "default" : "ghost"}
+              onClick={() => setActiveTab("education")}
               className="sanskrit-title transition-mystic"
             >
-              Vaidya
+              Gyan
             </Button>
             <Button 
               variant={activeTab === "profile" ? "default" : "ghost"}
@@ -136,7 +276,7 @@ const PatientDashboard = () => {
             </Button>
           </nav>
 
-          <Button variant="outline" onClick={() => navigate("/")} className="transition-mystic">
+          <Button variant="outline" onClick={signOut} className="transition-mystic">
             Logout
           </Button>
         </div>
@@ -150,7 +290,7 @@ const PatientDashboard = () => {
           <TabsContent value="dashboard" className="space-y-8">
             <div className="text-center">
               <h2 className="text-4xl font-bold sanskrit-title gradient-text mb-4">
-                Welcome back, Arjun
+                Welcome back, {patient?.name}
               </h2>
               <p className="text-muted-foreground text-lg">
                 Continue your Ayurvedic wellness journey
@@ -186,8 +326,8 @@ const PatientDashboard = () => {
               <Card className="mandala-shadow transition-mystic hover:scale-105">
                 <CardContent className="p-6 text-center">
                   <Brain className="h-8 w-8 text-secondary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Recipes Tried</h3>
-                  <p className="text-2xl font-bold text-secondary">15</p>
+                  <h3 className="font-semibold mb-2">Available Recipes</h3>
+                  <p className="text-2xl font-bold text-secondary">{recipes.length}</p>
                 </CardContent>
               </Card>
             </div>
@@ -203,8 +343,8 @@ const PatientDashboard = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {recipes.map((recipe, index) => (
-                  <Card key={index} className="mandala-shadow transition-mystic hover:scale-105">
+                {recipes.map((recipe) => (
+                  <Card key={recipe.id} className="mandala-shadow transition-mystic hover:scale-105">
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg sanskrit-title">{recipe.title}</CardTitle>
@@ -213,25 +353,23 @@ const PatientDashboard = () => {
                       <CardDescription>{recipe.description}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Rasa</p>
-                          <p className="text-sm">{recipe.rasa}</p>
+                      <div>
+                        <h5 className="font-medium mb-2 text-sm">Ingredients:</h5>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          {recipe.ingredients.slice(0, 3).map((ingredient, index) => (
+                            <div key={index}>• {ingredient}</div>
+                          ))}
+                          {recipe.ingredients.length > 3 && (
+                            <div className="text-xs">... and {recipe.ingredients.length - 3} more</div>
+                          )}
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Guna</p>
-                          <p className="text-sm">{recipe.guna}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-primary font-medium">{recipe.effect}</span>
-                        <span className="text-muted-foreground">{recipe.time}</span>
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <Badge variant="outline">{recipe.calories} cal</Badge>
-                        <p className="text-xs text-muted-foreground">by {recipe.author}</p>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(recipe.created_at).toLocaleDateString()}
+                        </span>
+                        <p className="text-xs text-muted-foreground">by Dr. {recipe.doctor.name}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -244,30 +382,31 @@ const PatientDashboard = () => {
               <h3 className="text-2xl font-bold sanskrit-title">Expert Insights</h3>
               
               <div className="space-y-4">
-                {doctorPosts.map((post, index) => (
-                  <Card key={index} className="mandala-shadow">
+                {doctorPosts.map((post) => (
+                  <Card key={post.id} className="mandala-shadow">
                     <CardContent className="p-6">
                       <div className="flex items-start space-x-4">
                         <Avatar>
                           <AvatarFallback className="bg-primary text-primary-foreground">
-                            {post.author.split(' ').map(n => n[0]).join('')}
+                            {post.doctor.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold sanskrit-title">{post.author}</h4>
-                            <span className="text-sm text-muted-foreground">{post.time}</span>
+                            <h4 className="font-semibold sanskrit-title">Dr. {post.doctor.name}</h4>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(post.created_at).toLocaleDateString()}
+                            </span>
                           </div>
-                          <h5 className="font-medium text-primary">{post.title}</h5>
                           <p className="text-muted-foreground">{post.content}</p>
                           <div className="flex items-center space-x-4 pt-2">
                             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
                               <Heart className="h-4 w-4 mr-1" />
-                              {post.likes}
+                              Like
                             </Button>
                             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
                               <MessageCircle className="h-4 w-4 mr-1" />
-                              {post.comments}
+                              Comment
                             </Button>
                           </div>
                         </div>
@@ -297,39 +436,55 @@ const PatientDashboard = () => {
                   Answer a few questions to receive your personalized Ayurvedic meal plan
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Current Health Goal</Label>
-                    <select className="w-full p-2 border border-border rounded-md bg-background">
-                      <option>Weight Management</option>
-                      <option>Digestive Health</option>
-                      <option>Energy & Vitality</option>
-                      <option>Stress Management</option>
-                      <option>General Wellness</option>
-                    </select>
+              <CardContent>
+                <form onSubmit={handleGenerateDiet} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="goal">Current Health Goal</Label>
+                      <Select name="goal" required>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your goal" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weight_management">Weight Management</SelectItem>
+                          <SelectItem value="digestive_health">Digestive Health</SelectItem>
+                          <SelectItem value="energy_vitality">Energy & Vitality</SelectItem>
+                          <SelectItem value="stress_management">Stress Management</SelectItem>
+                          <SelectItem value="general_wellness">General Wellness</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="concern">Primary Concern</Label>
+                      <Select name="concern" required>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select primary concern" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="irregular_digestion">Irregular Digestion</SelectItem>
+                          <SelectItem value="low_energy">Low Energy</SelectItem>
+                          <SelectItem value="sleep_issues">Sleep Issues</SelectItem>
+                          <SelectItem value="stress_anxiety">Stress & Anxiety</SelectItem>
+                          <SelectItem value="joint_pain">Joint Pain</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
+                  
                   <div className="space-y-2">
-                    <Label>Primary Concern</Label>
-                    <select className="w-full p-2 border border-border rounded-md bg-background">
-                      <option>Irregular Digestion</option>
-                      <option>Low Energy</option>
-                      <option>Sleep Issues</option>
-                      <option>Stress & Anxiety</option>
-                      <option>Joint Pain</option>
-                    </select>
+                    <Label htmlFor="restrictions">Food Preferences & Restrictions</Label>
+                    <Textarea 
+                      name="restrictions"
+                      placeholder="e.g., allergic to nuts, prefer warm foods, avoid dairy..." 
+                      rows={3}
+                    />
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Food Preferences & Restrictions</Label>
-                  <Textarea placeholder="e.g., allergic to nuts, prefer warm foods, avoid dairy..." />
-                </div>
-                
-                <Button className="w-full mystic-glow transition-mystic" size="lg">
-                  <Sparkles className="h-5 w-5 mr-2" />
-                  Generate My Diet Plan
-                </Button>
+                  
+                  <Button type="submit" className="w-full mystic-glow transition-mystic" size="lg">
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    Generate My Diet Plan
+                  </Button>
+                </form>
               </CardContent>
             </Card>
           </TabsContent>
@@ -448,6 +603,28 @@ const PatientDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Education */}
+          <TabsContent value="education" className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-4xl font-bold sanskrit-title gradient-text mb-4">
+                Ayurvedic Learning Center
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Deepen your understanding of Ayurvedic principles and nutrition
+              </p>
+            </div>
+
+            <Card className="mandala-shadow">
+              <CardContent className="p-8 text-center">
+                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Educational Content Coming Soon</h3>
+                <p className="text-muted-foreground">
+                  Comprehensive learning modules about Ayurvedic nutrition, dosha balance, and wellness practices will be available in the next update.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Profile */}
           <TabsContent value="profile" className="space-y-8">
             <div className="text-center">
@@ -534,24 +711,10 @@ const PatientDashboard = () => {
                       />
                     </div>
                     
-                    <div className="flex items-center justify-between pt-4">
-                      <div className="flex items-center space-x-2">
-                        <Switch 
-                          id="dark-mode"
-                          checked={isDarkMode}
-                          onCheckedChange={toggleTheme}
-                        />
-                        <Label htmlFor="dark-mode" className="flex items-center space-x-2">
-                          {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                          <span>Dark Mode</span>
-                        </Label>
-                      </div>
-                      
-                      <Button className="transition-mystic">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Update Profile
-                      </Button>
-                    </div>
+                  <Button type="submit" className="w-full mystic-glow transition-mystic" size="lg">
+                    <Settings className="h-5 w-5 mr-2" />
+                    Update Profile
+                  </Button>
                   </CardContent>
                 </Card>
               </div>

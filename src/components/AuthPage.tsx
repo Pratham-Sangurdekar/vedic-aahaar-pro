@@ -1,30 +1,127 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Leaf, Upload, ArrowLeft } from "lucide-react";
+import { Leaf, ArrowLeft, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const { 
+    user, 
+    userType: currentUserType, 
+    loading, 
+    signInPatient, 
+    signInDoctor, 
+    signUpPatient, 
+    signUpDoctor 
+  } = useAuth();
+  
   const [userType, setUserType] = useState<"patient" | "doctor">("patient");
   const [isLogin, setIsLogin] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handlePatientSubmit = (e: React.FormEvent) => {
+  // Redirect authenticated users
+  useEffect(() => {
+    if (user && currentUserType) {
+      if (currentUserType === 'patient') {
+        navigate('/patient/dashboard');
+      } else if (currentUserType === 'doctor') {
+        navigate('/doctor/dashboard');
+      }
+    }
+  }, [user, currentUserType, navigate]);
+
+  const handlePatientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Navigate to patient dashboard
-    navigate("/patient/dashboard");
+    setIsSubmitting(true);
+    
+    const formData = new FormData(e.target as HTMLFormElement);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    if (isLogin) {
+      const { error } = await signInPatient(email, password);
+      if (!error) {
+        navigate('/patient/dashboard');
+      }
+    } else {
+      const name = formData.get('name') as string;
+      const age = parseInt(formData.get('age') as string);
+      const gender = formData.get('gender') as string;
+      const food_preferences = formData.get('dietary') as string;
+
+      const { error } = await signUpPatient({
+        name,
+        email,
+        password,
+        age,
+        gender,
+        food_preferences,
+      });
+      
+      if (!error) {
+        setIsLogin(true);
+      }
+    }
+    
+    setIsSubmitting(false);
   };
 
-  const handleDoctorSubmit = (e: React.FormEvent) => {
+  const handleDoctorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Navigate to doctor dashboard  
-    navigate("/doctor/dashboard");
+    setIsSubmitting(true);
+    
+    const formData = new FormData(e.target as HTMLFormElement);
+    const email = formData.get('doctor-email') as string;
+    const password = formData.get('doctor-password') as string;
+
+    if (isLogin) {
+      const { error } = await signInDoctor(email, password);
+      if (!error) {
+        navigate('/doctor/dashboard');
+      }
+    } else {
+      const name = formData.get('doctor-name') as string;
+      const degree = formData.get('degrees') as string;
+      const institution = formData.get('college') as string;
+      const experience_years = parseInt(formData.get('experience') as string);
+      const specialization = formData.get('specialization') as string;
+      const certifications = formData.get('certifications') as string;
+
+      const { error } = await signUpDoctor({
+        name,
+        email,
+        password,
+        degree,
+        institution,
+        experience_years,
+        specialization,
+        certifications,
+      });
+      
+      if (!error) {
+        setIsLogin(true);
+      }
+    }
+    
+    setIsSubmitting(false);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-6">
@@ -80,18 +177,18 @@ const AuthPage = () => {
                   {!isLogin && (
                     <div className="space-y-2">
                       <Label htmlFor="name">Full Name</Label>
-                      <Input id="name" type="text" placeholder="Enter your full name" required />
+                      <Input id="name" name="name" type="text" placeholder="Enter your full name" required />
                     </div>
                   )}
                   
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="Enter your email" required />
+                    <Input id="email" name="email" type="email" placeholder="Enter your email" required />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" placeholder="Enter your password" required />
+                    <Input id="password" name="password" type="password" placeholder="Enter your password" required />
                   </div>
 
                   {!isLogin && (
@@ -99,11 +196,11 @@ const AuthPage = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="age">Age</Label>
-                          <Input id="age" type="number" placeholder="Age" min="1" max="120" required />
+                          <Input id="age" name="age" type="number" placeholder="Age" min="1" max="120" required />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="gender">Gender</Label>
-                          <Select required>
+                          <Select name="gender" required>
                             <SelectTrigger>
                               <SelectValue placeholder="Select" />
                             </SelectTrigger>
@@ -118,7 +215,7 @@ const AuthPage = () => {
 
                       <div className="space-y-2">
                         <Label htmlFor="dietary">Dietary Preferences</Label>
-                        <Select>
+                        <Select name="dietary">
                           <SelectTrigger>
                             <SelectValue placeholder="Select dietary preferences" />
                           </SelectTrigger>
@@ -134,8 +231,15 @@ const AuthPage = () => {
                     </>
                   )}
 
-                  <Button type="submit" className="w-full transition-mystic">
-                    {isLogin ? "Sign In" : "Create Patient Account"}
+                  <Button type="submit" disabled={isSubmitting} className="w-full transition-mystic">
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        {isLogin ? "Signing In..." : "Creating Account..."}
+                      </>
+                    ) : (
+                      isLogin ? "Sign In" : "Create Patient Account"
+                    )}
                   </Button>
                 </form>
               </TabsContent>
@@ -146,33 +250,28 @@ const AuthPage = () => {
                     <>
                       <div className="space-y-2">
                         <Label htmlFor="doctor-name">Full Name</Label>
-                        <Input id="doctor-name" type="text" placeholder="Dr. Full Name" required />
+                        <Input id="doctor-name" name="doctor-name" type="text" placeholder="Dr. Full Name" required />
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="degrees">Degree(s)</Label>
-                        <Input id="degrees" placeholder="e.g., BAMS, MD (Ayurveda)" required />
+                        <Input id="degrees" name="degrees" placeholder="e.g., BAMS, MD (Ayurveda)" required />
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="experience">Years of Experience</Label>
-                          <Input id="experience" type="number" placeholder="Years" min="0" required />
+                          <Input id="experience" name="experience" type="number" placeholder="Years" min="0" required />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="registration">Registration No.</Label>
-                          <Input id="registration" placeholder="Reg. Number" required />
+                          <Label htmlFor="college">College/Institute</Label>
+                          <Input id="college" name="college" placeholder="Educational Institution" required />
                         </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="college">College/Institute</Label>
-                        <Input id="college" placeholder="Educational Institution" required />
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="specialization">Specialization</Label>
-                        <Select required>
+                        <Select name="specialization" required>
                           <SelectTrigger>
                             <SelectValue placeholder="Select specialization" />
                           </SelectTrigger>
@@ -189,38 +288,31 @@ const AuthPage = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="certificates">Upload Certificates</Label>
-                        <div className="flex items-center justify-center w-full">
-                          <Label
-                            htmlFor="certificates"
-                            className="flex flex-col items-center justify-center w-full h-32 border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/30 hover:bg-muted/50 transition-mystic"
-                          >
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                              <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
-                              <p className="mb-2 text-sm text-muted-foreground">
-                                <span className="font-semibold">Click to upload</span> certificates
-                              </p>
-                              <p className="text-xs text-muted-foreground">PDF, JPG, PNG (MAX. 10MB)</p>
-                            </div>
-                            <Input id="certificates" type="file" className="hidden" multiple accept=".pdf,.jpg,.jpeg,.png" />
-                          </Label>
-                        </div>
+                        <Label htmlFor="certifications">Certifications (Optional)</Label>
+                        <Input id="certifications" name="certifications" placeholder="e.g., Certified Ayurvedic Practitioner" />
                       </div>
                     </>
                   )}
 
                   <div className="space-y-2">
                     <Label htmlFor="doctor-email">Email</Label>
-                    <Input id="doctor-email" type="email" placeholder="Enter your email" required />
+                    <Input id="doctor-email" name="doctor-email" type="email" placeholder="Enter your email" required />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="doctor-password">Password</Label>
-                    <Input id="doctor-password" type="password" placeholder="Enter your password" required />
+                    <Input id="doctor-password" name="doctor-password" type="password" placeholder="Enter your password" required />
                   </div>
 
-                  <Button type="submit" className="w-full transition-mystic">
-                    {isLogin ? "Sign In" : "Register as Doctor"}
+                  <Button type="submit" disabled={isSubmitting} className="w-full transition-mystic">
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        {isLogin ? "Signing In..." : "Creating Account..."}
+                      </>
+                    ) : (
+                      isLogin ? "Sign In" : "Register as Doctor"
+                    )}
                   </Button>
                 </form>
               </TabsContent>
