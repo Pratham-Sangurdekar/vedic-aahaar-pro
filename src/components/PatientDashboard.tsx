@@ -21,11 +21,19 @@ import {
   Stethoscope,
   Settings,
   MessageCircle,
-  BookOpen
+  BookOpen,
+  Download,
+  Bell
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/contexts/ThemeContext";
+import { t } from "@/utils/translations";
+import { generateDietPDF } from "@/utils/pdfGenerator";
+import ChatInterface from "./ChatInterface";
+import NotificationSystem from "./NotificationSystem";
+import ThemeToggle from "./ThemeToggle";
 
 interface Patient {
   id: string;
@@ -64,10 +72,12 @@ interface DoctorPost {
 const PatientDashboard = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const { language } = useTheme();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [patient, setPatient] = useState<Patient | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [doctorPosts, setDoctorPosts] = useState<DoctorPost[]>([]);
+  const [lastDietChart, setLastDietChart] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -75,6 +85,7 @@ const PatientDashboard = () => {
       fetchPatientData();
       fetchRecipes();
       fetchDoctorPosts();
+      fetchLastDietChart();
     }
   }, [user]);
 
@@ -135,6 +146,39 @@ const PatientDashboard = () => {
     }
   };
 
+  const fetchLastDietChart = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('diet_charts')
+        .select('*')
+        .eq('patient_id', user?.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+      setLastDietChart(data?.[0] || null);
+    } catch (error: any) {
+      console.error('Error fetching diet chart:', error);
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    if (!patient || !lastDietChart) {
+      toast({
+        title: t('error', language),
+        description: "No diet chart available to download",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    generateDietPDF(patient, lastDietChart.generated_diet);
+    toast({
+      title: t('success', language),
+      description: "Diet chart downloaded successfully!",
+    });
+  };
+
   const handleGenerateDiet = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
@@ -171,6 +215,7 @@ const PatientDashboard = () => {
         description: "Your personalized diet plan has been generated!",
       });
 
+      fetchLastDietChart();
       (e.target as HTMLFormElement).reset();
     } catch (error: any) {
       toast({
@@ -268,11 +313,18 @@ const PatientDashboard = () => {
               Gyan
             </Button>
             <Button 
+              variant={activeTab === "chat" ? "default" : "ghost"}
+              onClick={() => setActiveTab("chat")}
+              className="sanskrit-title transition-mystic"
+            >
+              {t('chat', language)}
+            </Button>
+            <Button 
               variant={activeTab === "profile" ? "default" : "ghost"}
               onClick={() => setActiveTab("profile")}
               className="sanskrit-title transition-mystic"
             >
-              Swaroop
+              {t('profile', language)}
             </Button>
           </nav>
 
@@ -290,10 +342,10 @@ const PatientDashboard = () => {
           <TabsContent value="dashboard" className="space-y-8">
             <div className="text-center">
               <h2 className="text-4xl font-bold sanskrit-title gradient-text mb-4">
-                Welcome back, {patient?.name}
+                {t('welcomeBack', language)}, {patient?.name}
               </h2>
               <p className="text-muted-foreground text-lg">
-                Continue your Ayurvedic wellness journey
+                {t('continueJourney', language)}
               </p>
             </div>
 
@@ -623,6 +675,24 @@ const PatientDashboard = () => {
                 </p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Chat */}
+          <TabsContent value="chat" className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-4xl font-bold sanskrit-title gradient-text mb-4">
+                {t('chat', language)}
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Connect with your Ayurvedic doctor
+              </p>
+            </div>
+
+            <ChatInterface 
+              recipientId="doctor-demo-id"
+              recipientType="doctor"
+              recipientName="Dr. Priya Sharma"
+            />
           </TabsContent>
 
           {/* Profile */}
