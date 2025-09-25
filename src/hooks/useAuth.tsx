@@ -356,35 +356,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    let signOutError: any = null;
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        // Clear local state
-        setUser(null);
-        setSession(null);
-        setUserType(null);
-        
-        toast({
-          title: "Signed out",
-          description: "You have been signed out successfully.",
-        });
-        
-        // Redirect to landing page instead of auth page
-        window.location.href = '/';
-      }
-    } catch (error: any) {
+      if (error) signOutError = error;
+    } catch (e: any) {
+      signOutError = e;
+    }
+
+    // Clear local auth state regardless of API response
+    setUser(null);
+    setSession(null);
+    setUserType(null);
+
+    // Best-effort: clear Supabase auth token for this project
+    try {
+      localStorage.removeItem('sb-pfddhpcwwbthnzmmzaps-auth-token');
+    } catch {}
+
+    // Notify user and redirect home
+    if (signOutError) {
       toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+        title: "Signed out",
+        description: "Session already expired. Redirecting to home.",
+      });
+    } else {
+      toast({
+        title: "Signed out",
+        description: "You have been signed out successfully.",
       });
     }
+
+    window.location.href = '/';
   };
 
   const value = {

@@ -84,8 +84,8 @@ const Navbar: React.FC = () => {
                 onClick={() => scrollToSection(item.href)}
                 className={`relative px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                   activeSection === item.id
-                    ? 'text-primary'
-                    : 'text-foreground hover:text-primary'
+                    ? (isScrolled ? 'text-primary' : 'text-secondary')
+                    : (isScrolled ? 'text-foreground hover:text-primary' : 'text-primary-foreground hover:text-secondary')
                 }`}
               >
                 {item.label}
