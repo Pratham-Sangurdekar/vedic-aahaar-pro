@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .from('patients')
         .select('id')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (patient) {
         setUserType('patient');
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .from('doctors')
         .select('id')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (doctor) {
         setUserType('doctor');
@@ -151,7 +151,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .from('patients')
           .select('id')
           .eq('id', data.user.id)
-          .single();
+          .maybeSingle();
 
         if (!patient) {
           await supabase.auth.signOut();
@@ -203,7 +203,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .from('doctors')
           .select('id')
           .eq('id', data.user.id)
-          .single();
+          .maybeSingle();
 
         if (!doctor) {
           await supabase.auth.signOut();
