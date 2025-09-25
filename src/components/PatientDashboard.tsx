@@ -57,7 +57,7 @@ interface Recipe {
   created_at: string;
   doctor: {
     name: string;
-  };
+  } | null;
 }
 
 interface DoctorPost {
@@ -66,7 +66,7 @@ interface DoctorPost {
   created_at: string;
   doctor: {
     name: string;
-  };
+  } | null;
 }
 
 const PatientDashboard = () => {
@@ -421,7 +421,7 @@ const PatientDashboard = () => {
                         <span className="text-xs text-muted-foreground">
                           {new Date(recipe.created_at).toLocaleDateString()}
                         </span>
-                        <p className="text-xs text-muted-foreground">by Dr. {recipe.doctor.name}</p>
+                        <p className="text-xs text-muted-foreground">by Dr. {recipe.doctor?.name || 'Unknown'}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -440,12 +440,12 @@ const PatientDashboard = () => {
                       <div className="flex items-start space-x-4">
                         <Avatar>
                           <AvatarFallback className="bg-primary text-primary-foreground">
-                            {post.doctor.name.split(' ').map(n => n[0]).join('')}
+                            {post.doctor?.name ? post.doctor.name.split(' ').map(n => n[0]).join('') : 'DR'}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold sanskrit-title">Dr. {post.doctor.name}</h4>
+                            <h4 className="font-semibold sanskrit-title">Dr. {post.doctor?.name || 'Unknown Doctor'}</h4>
                             <span className="text-sm text-muted-foreground">
                               {new Date(post.created_at).toLocaleDateString()}
                             </span>
