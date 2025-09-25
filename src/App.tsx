@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import EnhancedLandingPage from "./components/EnhancedLandingPage";
+import NewLandingPage from "./components/NewLandingPage";
 import AuthPage from "./components/AuthPage";
 import PatientDashboard from "./components/PatientDashboard";
 import DoctorDashboard from "./components/DoctorDashboard";
@@ -23,7 +23,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
           <Routes>
-            <Route path="/" element={<EnhancedLandingPage />} />
+            <Route path="/" element={<NewLandingPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route 
               path="/patient/dashboard" 
