@@ -16,34 +16,78 @@ export type Database = {
     Tables: {
       chat_messages: {
         Row: {
+          attachment_type: string | null
+          attachment_url: string | null
+          chat_id: string | null
           created_at: string
           id: string
           is_read: boolean
           message: string
+          read_at: string | null
           receiver_id: string
           receiver_type: string
           sender_id: string
           sender_type: string
         }
         Insert: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          chat_id?: string | null
           created_at?: string
           id?: string
           is_read?: boolean
           message: string
+          read_at?: string | null
           receiver_id: string
           receiver_type: string
           sender_id: string
           sender_type: string
         }
         Update: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          chat_id?: string | null
           created_at?: string
           id?: string
           is_read?: boolean
           message?: string
+          read_at?: string | null
           receiver_id?: string
           receiver_type?: string
           sender_id?: string
           sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_chat_messages_chat_id"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chats: {
+        Row: {
+          created_at: string
+          doctor_id: string
+          id: string
+          last_message_at: string | null
+          patient_id: string
+        }
+        Insert: {
+          created_at?: string
+          doctor_id: string
+          id?: string
+          last_message_at?: string | null
+          patient_id: string
+        }
+        Update: {
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          last_message_at?: string | null
+          patient_id?: string
         }
         Relationships: []
       }
@@ -115,7 +159,9 @@ export type Database = {
           id: string
           institution: string
           name: string
+          profile_pic_url: string | null
           specialization: string
+          theme_preference: string | null
         }
         Insert: {
           certifications?: string | null
@@ -126,7 +172,9 @@ export type Database = {
           id?: string
           institution: string
           name: string
+          profile_pic_url?: string | null
           specialization: string
+          theme_preference?: string | null
         }
         Update: {
           certifications?: string | null
@@ -137,9 +185,123 @@ export type Database = {
           id?: string
           institution?: string
           name?: string
+          profile_pic_url?: string | null
           specialization?: string
+          theme_preference?: string | null
         }
         Relationships: []
+      }
+      food_logs: {
+        Row: {
+          created_at: string
+          custom_food_calories: number | null
+          custom_food_name: string | null
+          date: string
+          id: string
+          patient_id: string
+          quantity: number | null
+          recipe_id: string | null
+          time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_food_calories?: number | null
+          custom_food_name?: string | null
+          date: string
+          id?: string
+          patient_id: string
+          quantity?: number | null
+          recipe_id?: string | null
+          time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_food_calories?: number | null
+          custom_food_name?: string | null
+          date?: string
+          id?: string
+          patient_id?: string
+          quantity?: number | null
+          recipe_id?: string | null
+          time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_logs_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gyan_modules: {
+        Row: {
+          content_html: string
+          created_at: string
+          id: string
+          image_url: string | null
+          order_index: number | null
+          title: string
+          topic: string | null
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          content_html: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          order_index?: number | null
+          title: string
+          topic?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          content_html?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          order_index?: number | null
+          title?: string
+          topic?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      gyan_progress: {
+        Row: {
+          completed_at: string
+          id: string
+          module_id: string
+          patient_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          module_id: string
+          patient_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          module_id?: string
+          patient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gyan_progress_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "gyan_modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -186,6 +348,8 @@ export type Database = {
           id: string
           medical_history: string | null
           name: string
+          profile_pic_url: string | null
+          theme_preference: string | null
           weight: number | null
         }
         Insert: {
@@ -199,6 +363,8 @@ export type Database = {
           id?: string
           medical_history?: string | null
           name: string
+          profile_pic_url?: string | null
+          theme_preference?: string | null
           weight?: number | null
         }
         Update: {
@@ -212,36 +378,88 @@ export type Database = {
           id?: string
           medical_history?: string | null
           name?: string
+          profile_pic_url?: string | null
+          theme_preference?: string | null
           weight?: number | null
         }
         Relationships: []
       }
+      recipe_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          recipe_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipe_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipe_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_favorites_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipes: {
         Row: {
           author_id: string | null
+          calories_per_serving: number | null
+          cooking_time_minutes: number | null
           created_at: string
+          cuisine: string | null
           description: string | null
+          diet_type: string | null
+          difficulty_level: string | null
           id: string
+          image_url: string | null
           ingredients: string[] | null
           instructions: string | null
+          rasa: string | null
           title: string
         }
         Insert: {
           author_id?: string | null
+          calories_per_serving?: number | null
+          cooking_time_minutes?: number | null
           created_at?: string
+          cuisine?: string | null
           description?: string | null
+          diet_type?: string | null
+          difficulty_level?: string | null
           id?: string
+          image_url?: string | null
           ingredients?: string[] | null
           instructions?: string | null
+          rasa?: string | null
           title: string
         }
         Update: {
           author_id?: string | null
+          calories_per_serving?: number | null
+          cooking_time_minutes?: number | null
           created_at?: string
+          cuisine?: string | null
           description?: string | null
+          diet_type?: string | null
+          difficulty_level?: string | null
           id?: string
+          image_url?: string | null
           ingredients?: string[] | null
           instructions?: string | null
+          rasa?: string | null
           title?: string
         }
         Relationships: [
