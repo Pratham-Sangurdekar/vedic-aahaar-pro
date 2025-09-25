@@ -1,6 +1,8 @@
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import heroImage from "@/assets/ayurvedic-spices-hero.jpg";
 import { 
   ArrowRight, 
@@ -16,11 +18,15 @@ import {
   Zap,
   Shield,
   Star,
-  MessageCircle
+  MessageCircle,
+  Clock,
+  Calendar,
+  Target
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/contexts/ThemeContext";
 import { t } from "@/utils/translations";
+import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "./ThemeToggle";
 import { useInView } from "react-intersection-observer";
 
@@ -102,9 +108,68 @@ const FeatureTile = ({ feature, index, isReversed, language }: {
   );
 };
 
+interface DoctorPost {
+  id: string;
+  content: string;
+  created_at: string;
+  doctor: {
+    name: string;
+  } | null;
+}
+
+interface Recipe {
+  id: string;
+  title: string;
+  description: string;
+  cuisine: string;
+  diet_type: string;
+  cooking_time_minutes: number;
+  calories_per_serving: number;
+}
+
 const EnhancedLandingPage = () => {
   const navigate = useNavigate();
   const { language } = useTheme();
+  const [doctorPosts, setDoctorPosts] = useState<DoctorPost[]>([]);
+  const [featuredRecipes, setFeaturedRecipes] = useState<Recipe[]>([]);
+
+  useEffect(() => {
+    fetchDoctorPosts();
+    fetchFeaturedRecipes();
+  }, []);
+
+  const fetchDoctorPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('doctor_posts')
+        .select(`
+          *,
+          doctor:doctors(name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      setDoctorPosts(data || []);
+    } catch (error: any) {
+      console.error('Error fetching doctor posts:', error);
+    }
+  };
+
+  const fetchFeaturedRecipes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (error) throw error;
+      setFeaturedRecipes(data || []);
+    } catch (error: any) {
+      console.error('Error fetching featured recipes:', error);
+    }
+  };
 
   const [heroRef, heroInView] = useInView({ threshold: 0.1, triggerOnce: true });
   const [featuresRef, featuresInView] = useInView({ threshold: 0.1, triggerOnce: true });

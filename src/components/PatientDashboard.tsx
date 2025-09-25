@@ -332,6 +332,7 @@ const PatientDashboard = () => {
           </nav>
 
           <div className="flex items-center gap-3">
+            <NotificationSystem />
             <ThemeToggle />
             <Button variant="outline" onClick={signOut} className="transition-mystic">
               Logout
