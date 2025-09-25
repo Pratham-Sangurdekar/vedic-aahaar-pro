@@ -53,7 +53,7 @@ interface DoctorPost {
   created_at: string;
   doctor: {
     name: string;
-  };
+  } | null;
 }
 
 const DoctorDashboard = () => {
@@ -382,12 +382,12 @@ const DoctorDashboard = () => {
                       <div className="flex items-start space-x-4">
                         <Avatar>
                           <AvatarFallback className="bg-primary text-primary-foreground">
-                            {post.doctor.name.split(' ').map(n => n[0]).join('')}
+                            {post.doctor?.name ? post.doctor.name.split(' ').map(n => n[0]).join('') : 'DR'}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold sanskrit-title">{post.doctor.name}</h4>
+                            <h4 className="font-semibold sanskrit-title">{post.doctor?.name || 'Unknown Doctor'}</h4>
                             <span className="text-sm text-muted-foreground">
                               {new Date(post.created_at).toLocaleDateString()}
                             </span>
