@@ -73,7 +73,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Logo className="cursor-pointer" onClick={() => scrollToSection('#hero')} />
+            <Logo className="cursor-pointer" variant="dark" onClick={() => scrollToSection('#hero')} />
           </div>
 
           {/* Desktop Navigation */}

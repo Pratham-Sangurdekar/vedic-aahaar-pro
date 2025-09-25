@@ -44,10 +44,14 @@ const Logo: React.FC<LogoProps> = ({ className = "", variant = 'light', onClick 
 
       {/* Brand Text */}
       <div className="flex flex-col">
-        <h1 className="sanskrit-title text-2xl font-bold text-white leading-tight">
+        <h1 className={`sanskrit-title text-2xl font-bold leading-tight ${
+          variant === 'light' ? 'text-white' : 'gradient-text'
+        }`}>
           Ved-Aahaar
         </h1>
-        <p className="text-xs text-white/70 font-medium tracking-wide">
+        <p className={`text-xs font-medium tracking-wide ${
+          variant === 'light' ? 'text-white/70' : 'text-muted-foreground'
+        }`}>
           आयुर्वेदिक आहार
         </p>
       </div>

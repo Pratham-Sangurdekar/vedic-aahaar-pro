@@ -96,14 +96,9 @@ const NewLandingPage = () => {
         {/* Vedic frieze divider */}
         <div className="absolute top-20 left-0 right-0 vedic-border"></div>
         
-        {/* Deity watermark - subtle background */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="w-full h-full bg-contain bg-center bg-no-repeat" 
-               style={{backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDIwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMTAwIiBjeT0iNzAiIHI9IjMwIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik03MCAyMDBMMTMwIDIwME0xMDAgMTAwTDEwMCAyNDAiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+')"}}></div>
-        </div>
         
         <div className="relative z-10 container mx-auto px-4 text-center text-white">
-          <h1 className="sanskrit-title text-6xl md:text-8xl font-bold mb-4 gradient-text drop-shadow-lg">
+          <h1 className="sanskrit-title text-6xl md:text-8xl font-bold mb-4 text-white drop-shadow-lg">
             Ved-Aahaar
           </h1>
           <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-4xl mx-auto leading-relaxed">
