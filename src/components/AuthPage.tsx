@@ -124,40 +124,40 @@ const AuthPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4 sm:p-6">
       {/* Mystical background pattern */}
       <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-secondary rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-32 sm:w-64 h-32 sm:h-64 bg-primary rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-32 sm:w-64 h-32 sm:h-64 bg-secondary rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="absolute -top-12 left-0 text-muted-foreground hover:text-primary"
+            className="absolute -top-8 sm:-top-12 left-0 text-muted-foreground hover:text-primary text-sm"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
           
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <Leaf className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold sanskrit-title gradient-text">Ved-Aahaar</h1>
+            <Leaf className="h-6 sm:h-8 w-6 sm:w-8 text-primary" />
+            <h1 className="text-2xl sm:text-3xl font-bold sanskrit-title gradient-text">Ved-Aahaar</h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {isLogin ? "Welcome back to your wellness journey" : "Begin your Ayurvedic wellness journey"}
           </p>
         </div>
 
         <Card className="mandala-shadow border-border/50">
-          <CardHeader className="text-center">
-            <CardTitle className="sanskrit-title text-2xl">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="sanskrit-title text-xl sm:text-2xl">
               {isLogin ? "Sign In" : "Create Account"}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm">
               {isLogin 
                 ? "Access your personalized Ayurvedic wellness platform" 
                 : "Join the Ved-Aahaar community for holistic nutrition guidance"
@@ -165,11 +165,11 @@ const AuthPage = () => {
             </CardDescription>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <Tabs defaultValue="patient" onValueChange={(value) => setUserType(value as "patient" | "doctor")}>
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="patient" className="sanskrit-title">Patient</TabsTrigger>
-                <TabsTrigger value="doctor" className="sanskrit-title">Doctor</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6 h-9 sm:h-10">
+                <TabsTrigger value="patient" className="sanskrit-title text-xs sm:text-sm">Patient</TabsTrigger>
+                <TabsTrigger value="doctor" className="sanskrit-title text-xs sm:text-sm">Doctor</TabsTrigger>
               </TabsList>
 
               <TabsContent value="patient">
@@ -231,14 +231,14 @@ const AuthPage = () => {
                     </>
                   )}
 
-                  <Button type="submit" disabled={isSubmitting} className="w-full transition-mystic">
+                  <Button type="submit" disabled={isSubmitting} className="w-full transition-mystic h-10 sm:h-11">
                     {isSubmitting ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        {isLogin ? "Signing In..." : "Creating Account..."}
+                        <span className="text-sm">{isLogin ? "Signing In..." : "Creating Account..."}</span>
                       </>
                     ) : (
-                      isLogin ? "Sign In" : "Create Patient Account"
+                      <span className="text-sm">{isLogin ? "Sign In" : "Create Patient Account"}</span>
                     )}
                   </Button>
                 </form>
@@ -304,25 +304,25 @@ const AuthPage = () => {
                     <Input id="doctor-password" name="doctor-password" type="password" placeholder="Enter your password" required />
                   </div>
 
-                  <Button type="submit" disabled={isSubmitting} className="w-full transition-mystic">
+                  <Button type="submit" disabled={isSubmitting} className="w-full transition-mystic h-10 sm:h-11">
                     {isSubmitting ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        {isLogin ? "Signing In..." : "Creating Account..."}
+                        <span className="text-sm">{isLogin ? "Signing In..." : "Creating Account..."}</span>
                       </>
                     ) : (
-                      isLogin ? "Sign In" : "Register as Doctor"
+                      <span className="text-sm">{isLogin ? "Sign In" : "Register as Doctor"}</span>
                     )}
                   </Button>
                 </form>
               </TabsContent>
             </Tabs>
 
-            <div className="mt-6 text-center">
+            <div className="mt-4 sm:mt-6 text-center">
               <Button
                 variant="link"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-muted-foreground hover:text-primary transition-mystic"
+                className="text-muted-foreground hover:text-primary transition-mystic text-sm h-auto p-2"
               >
                 {isLogin 
                   ? "Don't have an account? Create one" 

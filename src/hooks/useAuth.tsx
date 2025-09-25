@@ -365,10 +365,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           variant: "destructive",
         });
       } else {
+        // Clear local state
+        setUser(null);
+        setSession(null);
+        setUserType(null);
+        
         toast({
           title: "Signed out",
           description: "You have been signed out successfully.",
         });
+        
+        // Redirect to landing page instead of auth page
+        window.location.href = '/';
       }
     } catch (error: any) {
       toast({

@@ -86,6 +86,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     if (!recipientId || !user?.id) return;
 
     try {
+      // Use proper UUID validation to avoid invalid syntax errors
+      const isValidUUID = (uuid: string) => {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        return uuidRegex.test(uuid);
+      };
+
+      if (!isValidUUID(recipientId) || !isValidUUID(user.id)) {
+        console.error('Invalid UUID format');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('chat_messages')
         .select('*')

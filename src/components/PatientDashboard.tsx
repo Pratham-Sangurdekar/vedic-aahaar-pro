@@ -276,11 +276,11 @@ const PatientDashboard = () => {
   return (
     <div className="min-h-screen bg-background transition-mystic">
       {/* Header */}
-      <header className="px-6 py-4 bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
+      <header className="px-4 sm:px-6 py-3 sm:py-4 bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Leaf className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold sanskrit-title gradient-text">Ved-Aahaar</h1>
+            <Leaf className="h-6 sm:h-8 w-6 sm:w-8 text-primary" />
+            <h1 className="text-lg sm:text-2xl font-bold sanskrit-title gradient-text">Ved-Aahaar</h1>
           </div>
           
           <nav className="hidden md:flex items-center space-x-1">

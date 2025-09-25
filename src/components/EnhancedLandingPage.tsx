@@ -24,6 +24,84 @@ import { t } from "@/utils/translations";
 import ThemeToggle from "./ThemeToggle";
 import { useInView } from "react-intersection-observer";
 
+// Individual feature tile component with scroll animation
+const FeatureTile = ({ feature, index, isReversed, language }: {
+  feature: any;
+  index: number;
+  isReversed: boolean;
+  language: "en" | "hi";
+}) => {
+  const [ref, inView] = useInView({ threshold: 0.3, triggerOnce: true });
+
+  return (
+    <section 
+      ref={ref}
+      className={`min-h-screen flex items-center py-12 sm:py-20 px-4 sm:px-6 transition-all duration-1000 ${
+        inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+      } ${index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}
+    >
+      <div className="max-w-7xl mx-auto w-full">
+        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center ${isReversed ? 'lg:grid-flow-col-dense' : ''}`}>
+          {/* Content Side */}
+          <div className={`space-y-6 ${isReversed ? 'lg:col-start-2' : ''}`}>
+            <Badge variant="secondary" className="mb-4 px-4 py-2">
+              <Sparkles className="h-4 w-4 mr-2" />
+              {t('ancientWisdom', language)}
+            </Badge>
+            
+            <h2 className="text-2xl sm:text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-4 sm:mb-6">
+              {feature.title}
+            </h2>
+            
+            <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8">
+              {feature.description}
+            </p>
+
+            <div className="space-y-3 sm:space-y-4">
+              {feature.benefits.map((benefit: string, idx: number) => (
+                <div key={idx} className="flex items-center text-sm sm:text-lg">
+                  <Shield className="h-5 sm:h-6 w-5 sm:w-6 text-primary mr-2 sm:mr-3 flex-shrink-0" />
+                  <span>{benefit}</span>
+                </div>
+              ))}
+            </div>
+
+            <Button size="lg" className="mt-6 sm:mt-8 mystic-glow transition-mystic w-full sm:w-auto">
+              Learn More
+              <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
+            </Button>
+          </div>
+
+          {/* Visual Side */}
+          <div className={`${isReversed ? 'lg:col-start-1' : ''}`}>
+            <Card className="mandala-shadow transition-all duration-500 hover:scale-105 border-border/50 group">
+              <CardContent className="p-6 sm:p-8 md:p-12 text-center relative overflow-hidden">
+                {/* Background gradient */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-10 group-hover:opacity-20 transition-opacity`} />
+                
+                <div className={`inline-flex items-center justify-center w-20 sm:w-24 md:w-32 h-20 sm:h-24 md:h-32 bg-gradient-to-br ${feature.color} rounded-full mb-6 sm:mb-8 text-white shadow-lg relative z-10`}>
+                  <div className="scale-110 sm:scale-125 md:scale-150">
+                    {feature.icon}
+                  </div>
+                </div>
+                
+                <div className="relative z-10">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-3 sm:mb-4 sanskrit-title">
+                    {feature.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
+                    Revolutionary AI-powered approach to ancient wisdom
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const EnhancedLandingPage = () => {
   const navigate = useNavigate();
   const { language } = useTheme();
@@ -93,20 +171,27 @@ const EnhancedLandingPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Enhanced Header */}
-      <header className="px-6 py-4 bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
+      <header className="px-4 sm:px-6 py-4 bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Leaf className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold sanskrit-title gradient-text">
+            <Leaf className="h-6 sm:h-8 w-6 sm:w-8 text-primary" />
+            <h1 className="text-lg sm:text-2xl font-bold sanskrit-title gradient-text">
               {t('heroTitle', language)}
             </h1>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <ThemeToggle />
-            <Button variant="outline" onClick={() => navigate("/auth")} className="transition-mystic">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/auth")} 
+              className="transition-mystic text-xs sm:text-sm px-2 sm:px-4"
+            >
               {t('login', language)}
             </Button>
-            <Button onClick={() => navigate("/auth")} className="transition-mystic">
+            <Button 
+              onClick={() => navigate("/auth")} 
+              className="transition-mystic text-xs sm:text-sm px-2 sm:px-4"
+            >
               {t('register', language)}
             </Button>
           </div>
@@ -132,21 +217,21 @@ const EnhancedLandingPage = () => {
         {/* Animated overlay pattern */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-background/80" />
         
-        <div className="relative z-10 text-center max-w-6xl mx-auto px-6">
+        <div className="relative z-10 text-center max-w-6xl mx-auto px-4 sm:px-6">
           <div className="mb-8">
-            <h1 className="text-6xl md:text-8xl font-bold sanskrit-title text-white mb-4 animate-fade-in">
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold sanskrit-title text-white mb-4 animate-fade-in">
               {t('heroTitle', language)}
             </h1>
-            <p className="text-xl md:text-2xl sanskrit-title text-white/90 mb-2">
+            <p className="text-lg sm:text-xl md:text-2xl sanskrit-title text-white/90 mb-2">
               वेद-आहार
             </p>
           </div>
           
-          <h2 className="text-2xl md:text-5xl font-semibold text-white mb-6 animate-fade-in">
+          <h2 className="text-xl sm:text-2xl md:text-5xl font-semibold text-white mb-6 animate-fade-in">
             {t('heroSubtitle', language)}
           </h2>
           
-          <p className="text-lg md:text-xl text-white/80 mb-8 max-w-3xl mx-auto animate-fade-in">
+          <p className="text-base sm:text-lg md:text-xl text-white/80 mb-8 max-w-3xl mx-auto animate-fade-in">
             {t('heroDescription', language)}
           </p>
           
@@ -154,107 +239,54 @@ const EnhancedLandingPage = () => {
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")}
-              className="bg-primary hover:bg-primary-glow text-primary-foreground px-8 py-6 text-lg font-semibold mystic-glow transition-mystic"
+              className="bg-primary hover:bg-primary-glow text-primary-foreground px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg font-semibold mystic-glow transition-mystic w-full sm:w-auto"
             >
               {t('getStarted', language)}
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
             </Button>
             
             <Button 
               size="lg" 
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-primary px-8 py-6 text-lg font-semibold transition-mystic"
+              className="border-white text-white hover:bg-white hover:text-primary px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg font-semibold transition-mystic w-full sm:w-auto"
             >
               Watch Demo
-              <Sparkles className="ml-2 h-5 w-5" />
+              <Sparkles className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
             </Button>
           </div>
 
           {/* Stats Section */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 animate-fade-in">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mt-12 sm:mt-16 animate-fade-in">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="flex items-center justify-center mb-2 text-primary">
                   {stat.icon}
                 </div>
-                <p className="text-2xl md:text-3xl font-bold text-white">{stat.number}</p>
-                <p className="text-white/80 text-sm">{stat.label}</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white">{stat.number}</p>
+                <p className="text-white/80 text-xs sm:text-sm">{stat.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Enhanced Features Section with Scrolling Animation */}
-      <section 
-        ref={featuresRef}
-        className={`py-20 px-6 transition-all duration-1000 ${
-          featuresInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4 px-4 py-2">
-              <Sparkles className="h-4 w-4 mr-2" />
-              {t('ancientWisdom', language)}
-            </Badge>
-            <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
-              Revolutionary Features
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Experience the perfect fusion of 5000-year-old Ayurvedic principles with cutting-edge AI technology
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card 
-                key={index} 
-                className={`mandala-shadow transition-all duration-500 hover:scale-105 border-border/50 group ${
-                  featuresInView ? 'animate-scale-in' : ''
-                }`}
-                style={{ animationDelay: `${index * 200}ms` }}
-              >
-                <CardContent className="p-8 text-center relative overflow-hidden">
-                  {/* Background gradient */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
-                  
-                  <div className={`inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br ${feature.color} rounded-full mb-6 text-white shadow-lg`}>
-                    {feature.icon}
-                  </div>
-                  
-                  <h3 className="text-2xl font-semibold mb-4 sanskrit-title">
-                    {feature.title}
-                  </h3>
-                  
-                  <p className="text-muted-foreground mb-6">
-                    {feature.description}
-                  </p>
-
-                  <div className="space-y-2">
-                    {feature.benefits.map((benefit, idx) => (
-                      <div key={idx} className="flex items-center text-sm text-muted-foreground">
-                        <Shield className="h-4 w-4 text-primary mr-2" />
-                        {benefit}
-                      </div>
-                    ))}
-                  </div>
-
-                  <Button className="mt-6 w-full mystic-glow transition-mystic">
-                    Learn More
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+      {/* Enhanced Features Section - Full Width Horizontal Tiles */}
+      <section className="space-y-0">
+        {features.map((feature, index) => (
+          <FeatureTile 
+            key={index} 
+            feature={feature} 
+            index={index} 
+            isReversed={index % 2 === 1}
+            language={language}
+          />
+        ))}
       </section>
 
       {/* Enhanced Doctors Section */}
       <section 
         ref={doctorsRef}
-        className={`py-20 px-6 bg-muted/30 transition-all duration-1000 ${
+        className={`py-12 sm:py-20 px-4 sm:px-6 bg-muted/30 transition-all duration-1000 ${
           doctorsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}
       >
@@ -264,15 +296,15 @@ const EnhancedLandingPage = () => {
               <Heart className="h-4 w-4 mr-2" />
               {t('expertGuidance', language)}
             </Badge>
-            <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+            <h2 className="text-2xl sm:text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-4 sm:mb-6">
               Meet Our Ayurvedic Experts
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto">
               Learn from certified practitioners who blend traditional Ayurvedic knowledge with modern nutritional science
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
             {doctors.map((doctor, index) => (
               <Card 
                 key={index} 
@@ -325,17 +357,17 @@ const EnhancedLandingPage = () => {
       </section>
 
       {/* Enhanced CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-br from-primary/10 via-secondary/5 to-background">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-to-br from-primary/10 via-secondary/5 to-background">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-full mb-8 text-white animate-pulse">
             <Zap className="h-10 w-10" />
           </div>
           
-          <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+          <h2 className="text-2xl sm:text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-4 sm:mb-6">
             {t('startYourJourney', language)}
           </h2>
           
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+          <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
             Join thousands who have transformed their health through personalized Ayurvedic nutrition powered by AI
           </p>
           
@@ -343,19 +375,19 @@ const EnhancedLandingPage = () => {
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")}
-              className="bg-gradient-to-r from-primary to-secondary hover:from-primary-glow hover:to-secondary text-white px-8 py-6 text-lg font-semibold mystic-glow transition-mystic"
+              className="bg-gradient-to-r from-primary to-secondary hover:from-primary-glow hover:to-secondary text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg font-semibold mystic-glow transition-mystic w-full sm:w-auto"
             >
               Start Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
             </Button>
             
             <Button 
               size="lg" 
               variant="outline"
-              className="px-8 py-6 text-lg font-semibold transition-mystic"
+              className="px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg font-semibold transition-mystic w-full sm:w-auto"
             >
               Book Consultation
-              <Heart className="ml-2 h-5 w-5" />
+              <Heart className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
             </Button>
           </div>
         </div>
@@ -364,8 +396,8 @@ const EnhancedLandingPage = () => {
       {/* Enhanced Footer */}
       <footer className="border-t border-border bg-background">
         <div className="vedic-border"></div>
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Leaf className="h-6 w-6 text-primary" />
