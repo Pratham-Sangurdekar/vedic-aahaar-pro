@@ -1,0 +1,788 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { 
+  Search, 
+  Heart, 
+  Clock, 
+  Users, 
+  ChefHat, 
+  Plus, 
+  Star,
+  Filter,
+  Utensils,
+  BookOpen
+} from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface Recipe {
+  id: string;
+  title: string;
+  description?: string;
+  ingredients?: string[];
+  instructions?: string;
+  author_id?: string;
+  rasa?: string;
+  cuisine?: string;
+  diet_type?: string;
+  calories_per_serving?: number;
+  cooking_time_minutes?: number;
+  difficulty_level?: string;
+  image_url?: string;
+  created_at: string;
+  is_favorited?: boolean;
+}
+
+const RecipesPage: React.FC = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCuisine, setSelectedCuisine] = useState('');
+  const [selectedDietType, setSelectedDietType] = useState('');
+  const [selectedRasa, setSelectedRasa] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  const userType = user?.email?.includes('@doctor.') ? 'doctor' : 'patient';
+
+  // Form state for adding recipes
+  const [newRecipe, setNewRecipe] = useState({
+    title: '',
+    description: '',
+    ingredients: '',
+    instructions: '',
+    rasa: '',
+    cuisine: '',
+    diet_type: '',
+    calories_per_serving: '',
+    cooking_time_minutes: '',
+    difficulty_level: '',
+  });
+
+  useEffect(() => {
+    fetchRecipes();
+  }, [user?.id]);
+
+  useEffect(() => {
+    filterRecipes();
+  }, [recipes, searchTerm, selectedCuisine, selectedDietType, selectedRasa, selectedDifficulty, showFavoritesOnly]);
+
+  const fetchRecipes = async (pageNum = 1) => {
+    setLoading(true);
+    try {
+      const from = (pageNum - 1) * 20;
+      const to = from + 19;
+
+      // First, get recipes
+      const { data: recipesData, error: recipesError } = await supabase
+        .from('recipes')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (recipesError) throw recipesError;
+
+      // Then, get user's favorites if logged in
+      let favorites: string[] = [];
+      if (user?.id) {
+        const { data: favoritesData, error: favoritesError } = await supabase
+          .from('recipe_favorites')
+          .select('recipe_id')
+          .eq('user_id', user.id);
+
+        if (!favoritesError) {
+          favorites = favoritesData.map(fav => fav.recipe_id);
+        }
+      }
+
+      // Mark recipes as favorited
+      const recipesWithFavorites = (recipesData || []).map(recipe => ({
+        ...recipe,
+        is_favorited: favorites.includes(recipe.id)
+      }));
+
+      if (pageNum === 1) {
+        setRecipes(recipesWithFavorites);
+      } else {
+        setRecipes(prev => [...prev, ...recipesWithFavorites]);
+      }
+
+      setHasMore(recipesWithFavorites.length === 20);
+    } catch (error: any) {
+      console.error('Error fetching recipes:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch recipes',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterRecipes = () => {
+    let filtered = recipes;
+
+    if (searchTerm) {
+      filtered = filtered.filter(recipe =>
+        recipe.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        recipe.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedCuisine) {
+      filtered = filtered.filter(recipe => recipe.cuisine === selectedCuisine);
+    }
+
+    if (selectedDietType) {
+      filtered = filtered.filter(recipe => recipe.diet_type === selectedDietType);
+    }
+
+    if (selectedRasa) {
+      filtered = filtered.filter(recipe => recipe.rasa === selectedRasa);
+    }
+
+    if (selectedDifficulty) {
+      filtered = filtered.filter(recipe => recipe.difficulty_level === selectedDifficulty);
+    }
+
+    if (showFavoritesOnly) {
+      filtered = filtered.filter(recipe => recipe.is_favorited);
+    }
+
+    setFilteredRecipes(filtered);
+  };
+
+  const toggleFavorite = async (recipeId: string) => {
+    if (!user?.id) {
+      toast({
+        title: 'Login Required',
+        description: 'Please login to add favorites',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const recipe = recipes.find(r => r.id === recipeId);
+      if (!recipe) return;
+
+      if (recipe.is_favorited) {
+        // Remove from favorites
+        const { error } = await supabase
+          .from('recipe_favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('recipe_id', recipeId);
+
+        if (error) throw error;
+      } else {
+        // Add to favorites
+        const { error } = await supabase
+          .from('recipe_favorites')
+          .insert({
+            user_id: user.id,
+            recipe_id: recipeId,
+          });
+
+        if (error) throw error;
+      }
+
+      // Update local state
+      setRecipes(prev => prev.map(recipe => 
+        recipe.id === recipeId 
+          ? { ...recipe, is_favorited: !recipe.is_favorited }
+          : recipe
+      ));
+
+      toast({
+        title: recipe.is_favorited ? 'Removed from favorites' : 'Added to favorites',
+        description: recipe.is_favorited 
+          ? 'Recipe removed from your favorites' 
+          : 'Recipe added to your favorites',
+      });
+    } catch (error: any) {
+      console.error('Error toggling favorite:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update favorites',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAddRecipe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.id || userType !== 'doctor') {
+      toast({
+        title: 'Permission Denied',
+        description: 'Only doctors can add recipes',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('recipes')
+        .insert({
+          title: newRecipe.title,
+          description: newRecipe.description,
+          ingredients: newRecipe.ingredients.split('\n').filter(i => i.trim()),
+          instructions: newRecipe.instructions,
+          author_id: user.id,
+          rasa: newRecipe.rasa,
+          cuisine: newRecipe.cuisine,
+          diet_type: newRecipe.diet_type,
+          calories_per_serving: parseInt(newRecipe.calories_per_serving) || null,
+          cooking_time_minutes: parseInt(newRecipe.cooking_time_minutes) || null,
+          difficulty_level: newRecipe.difficulty_level,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Recipe Added',
+        description: 'Your recipe has been added successfully',
+      });
+
+      setIsAddModalOpen(false);
+      setNewRecipe({
+        title: '',
+        description: '',
+        ingredients: '',
+        instructions: '',
+        rasa: '',
+        cuisine: '',
+        diet_type: '',
+        calories_per_serving: '',
+        cooking_time_minutes: '',
+        difficulty_level: '',
+      });
+      
+      fetchRecipes();
+    } catch (error: any) {
+      console.error('Error adding recipe:', error);
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cuisines = ['Indian', 'Chinese', 'Italian', 'Mexican', 'Thai', 'Mediterranean', 'Japanese'];
+  const dietTypes = ['Vegetarian', 'Vegan', 'Non-Vegetarian', 'Gluten-Free', 'Dairy-Free'];
+  const rasas = ['Sweet', 'Sour', 'Salty', 'Bitter', 'Pungent', 'Astringent'];
+  const difficulties = ['Easy', 'Medium', 'Hard'];
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Easy': return 'bg-green-100 text-green-800';
+      case 'Medium': return 'bg-yellow-100 text-yellow-800';
+      case 'Hard': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getRasaColor = (rasa: string) => {
+    const colors: Record<string, string> = {
+      'Sweet': 'bg-green-100 text-green-800',
+      'Sour': 'bg-yellow-100 text-yellow-800',
+      'Salty': 'bg-blue-100 text-blue-800',
+      'Bitter': 'bg-gray-100 text-gray-800',
+      'Pungent': 'bg-red-100 text-red-800',
+      'Astringent': 'bg-purple-100 text-purple-800',
+    };
+    return colors[rasa] || 'bg-gray-100 text-gray-800';
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Ayurvedic Recipes</h1>
+          <p className="text-muted-foreground">Discover traditional recipes based on Ayurvedic principles</p>
+        </div>
+        {userType === 'doctor' && (
+          <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Recipe
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Recipe</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleAddRecipe} className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Recipe Title</Label>
+                  <Input
+                    id="title"
+                    value={newRecipe.title}
+                    onChange={(e) => setNewRecipe(prev => ({ ...prev, title: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={newRecipe.description}
+                    onChange={(e) => setNewRecipe(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Brief description of the recipe"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="cuisine">Cuisine</Label>
+                    <Select value={newRecipe.cuisine} onValueChange={(value) => setNewRecipe(prev => ({ ...prev, cuisine: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select cuisine" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cuisines.map(cuisine => (
+                          <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="dietType">Diet Type</Label>
+                    <Select value={newRecipe.diet_type} onValueChange={(value) => setNewRecipe(prev => ({ ...prev, diet_type: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select diet type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dietTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="rasa">Primary Rasa (Taste)</Label>
+                    <Select value={newRecipe.rasa} onValueChange={(value) => setNewRecipe(prev => ({ ...prev, rasa: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select rasa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {rasas.map(rasa => (
+                          <SelectItem key={rasa} value={rasa}>{rasa}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="difficulty">Difficulty Level</Label>
+                    <Select value={newRecipe.difficulty_level} onValueChange={(value) => setNewRecipe(prev => ({ ...prev, difficulty_level: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select difficulty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {difficulties.map(difficulty => (
+                          <SelectItem key={difficulty} value={difficulty}>{difficulty}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="calories">Calories per Serving</Label>
+                    <Input
+                      id="calories"
+                      type="number"
+                      value={newRecipe.calories_per_serving}
+                      onChange={(e) => setNewRecipe(prev => ({ ...prev, calories_per_serving: e.target.value }))}
+                      placeholder="Enter calories"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="cookingTime">Cooking Time (minutes)</Label>
+                    <Input
+                      id="cookingTime"
+                      type="number"
+                      value={newRecipe.cooking_time_minutes}
+                      onChange={(e) => setNewRecipe(prev => ({ ...prev, cooking_time_minutes: e.target.value }))}
+                      placeholder="Enter time in minutes"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="ingredients">Ingredients (one per line)</Label>
+                  <Textarea
+                    id="ingredients"
+                    value={newRecipe.ingredients}
+                    onChange={(e) => setNewRecipe(prev => ({ ...prev, ingredients: e.target.value }))}
+                    placeholder="1 cup rice&#10;2 tbsp ghee&#10;1 tsp turmeric"
+                    className="min-h-[100px]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="instructions">Instructions</Label>
+                  <Textarea
+                    id="instructions"
+                    value={newRecipe.instructions}
+                    onChange={(e) => setNewRecipe(prev => ({ ...prev, instructions: e.target.value }))}
+                    placeholder="Step by step cooking instructions..."
+                    className="min-h-[150px]"
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading}>
+                    Add Recipe
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
+      {/* Search and Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="space-y-4">
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search recipes..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <Button
+                variant={showFavoritesOnly ? "default" : "outline"}
+                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              >
+                <Heart className={`h-4 w-4 mr-2 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+                Favorites
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Cuisines" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Cuisines</SelectItem>
+                  {cuisines.map(cuisine => (
+                    <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedDietType} onValueChange={setSelectedDietType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Diet Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Diet Types</SelectItem>
+                  {dietTypes.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedRasa} onValueChange={setSelectedRasa}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Tastes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Tastes</SelectItem>
+                  {rasas.map(rasa => (
+                    <SelectItem key={rasa} value={rasa}>{rasa}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Difficulties" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Difficulties</SelectItem>
+                  {difficulties.map(difficulty => (
+                    <SelectItem key={difficulty} value={difficulty}>{difficulty}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Results Count */}
+      <div className="text-sm text-muted-foreground">
+        {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? 's' : ''} found
+      </div>
+
+      {/* Recipes Grid */}
+      {loading && filteredRecipes.length === 0 ? (
+        <div className="text-center py-12">Loading recipes...</div>
+      ) : filteredRecipes.length === 0 ? (
+        <div className="text-center py-12">
+          <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-medium mb-2">No recipes found</h3>
+          <p className="text-muted-foreground">Try adjusting your search filters</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredRecipes.map((recipe) => (
+            <Card key={recipe.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-0">
+                {recipe.image_url && (
+                  <img
+                    src={recipe.image_url}
+                    alt={recipe.title}
+                    className="w-full h-48 object-cover rounded-t-lg"
+                  />
+                )}
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="font-semibold text-lg leading-tight">{recipe.title}</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(recipe.id);
+                      }}
+                    >
+                      <Heart className={`h-4 w-4 ${recipe.is_favorited ? 'fill-red-500 text-red-500' : ''}`} />
+                    </Button>
+                  </div>
+
+                  {recipe.description && (
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                      {recipe.description}
+                    </p>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {recipe.rasa && (
+                        <Badge className={getRasaColor(recipe.rasa)} variant="secondary">
+                          {recipe.rasa}
+                        </Badge>
+                      )}
+                      {recipe.diet_type && (
+                        <Badge variant="outline">{recipe.diet_type}</Badge>
+                      )}
+                      {recipe.difficulty_level && (
+                        <Badge className={getDifficultyColor(recipe.difficulty_level)}>
+                          {recipe.difficulty_level}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <div className="flex items-center gap-4">
+                        {recipe.cooking_time_minutes && (
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            <span>{recipe.cooking_time_minutes}m</span>
+                          </div>
+                        )}
+                        {recipe.calories_per_serving && (
+                          <div className="flex items-center gap-1">
+                            <Utensils className="h-4 w-4" />
+                            <span>{recipe.calories_per_serving} cal</span>
+                          </div>
+                        )}
+                      </div>
+                      {recipe.cuisine && (
+                        <Badge variant="outline" className="text-xs">
+                          {recipe.cuisine}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <Button
+                    className="w-full mt-4"
+                    variant="outline"
+                    onClick={() => setSelectedRecipe(recipe)}
+                  >
+                    View Recipe
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Load More */}
+      {hasMore && !loading && filteredRecipes.length > 0 && (
+        <div className="text-center">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const nextPage = page + 1;
+              setPage(nextPage);
+              fetchRecipes(nextPage);
+            }}
+            disabled={loading}
+          >
+            Load More Recipes
+          </Button>
+        </div>
+      )}
+
+      {/* Recipe Detail Modal */}
+      <Dialog open={!!selectedRecipe} onOpenChange={() => setSelectedRecipe(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {selectedRecipe && (
+            <>
+              <DialogHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <DialogTitle className="text-xl mb-2">{selectedRecipe.title}</DialogTitle>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      {selectedRecipe.cooking_time_minutes && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          <span>{selectedRecipe.cooking_time_minutes} minutes</span>
+                        </div>
+                      )}
+                      {selectedRecipe.calories_per_serving && (
+                        <div className="flex items-center gap-1">
+                          <Utensils className="h-4 w-4" />
+                          <span>{selectedRecipe.calories_per_serving} calories</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        <span>1 serving</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleFavorite(selectedRecipe.id)}
+                  >
+                    <Heart className={`h-5 w-5 ${selectedRecipe.is_favorited ? 'fill-red-500 text-red-500' : ''}`} />
+                  </Button>
+                </div>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                {selectedRecipe.image_url && (
+                  <img
+                    src={selectedRecipe.image_url}
+                    alt={selectedRecipe.title}
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                )}
+
+                {selectedRecipe.description && (
+                  <p className="text-muted-foreground">{selectedRecipe.description}</p>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  {selectedRecipe.rasa && (
+                    <Badge className={getRasaColor(selectedRecipe.rasa)}>
+                      {selectedRecipe.rasa}
+                    </Badge>
+                  )}
+                  {selectedRecipe.diet_type && (
+                    <Badge variant="outline">{selectedRecipe.diet_type}</Badge>
+                  )}
+                  {selectedRecipe.cuisine && (
+                    <Badge variant="outline">{selectedRecipe.cuisine}</Badge>
+                  )}
+                  {selectedRecipe.difficulty_level && (
+                    <Badge className={getDifficultyColor(selectedRecipe.difficulty_level)}>
+                      {selectedRecipe.difficulty_level}
+                    </Badge>
+                  )}
+                </div>
+
+                {selectedRecipe.ingredients && selectedRecipe.ingredients.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-3">Ingredients:</h4>
+                    <ul className="list-disc list-inside space-y-1">
+                      {selectedRecipe.ingredients.map((ingredient, index) => (
+                        <li key={index} className="text-sm">{ingredient}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {selectedRecipe.instructions && (
+                  <div>
+                    <h4 className="font-semibold mb-3">Instructions:</h4>
+                    <div className="prose prose-sm max-w-none">
+                      <p className="whitespace-pre-wrap">{selectedRecipe.instructions}</p>
+                    </div>
+                  </div>
+                )}
+
+                {userType === 'patient' && (
+                  <div className="flex gap-2 pt-4 border-t">
+                    <Button className="flex-1">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add to Diet Plan
+                    </Button>
+                    <Button variant="outline" className="flex-1">
+                      <Utensils className="h-4 w-4 mr-2" />
+                      Log as Meal
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default RecipesPage;

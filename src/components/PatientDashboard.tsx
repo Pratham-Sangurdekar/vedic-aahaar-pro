@@ -34,6 +34,8 @@ import { t } from "@/utils/translations";
 import { generateDietPDF } from "@/utils/pdfGenerator";
 import ChatInterface from "./ChatInterface";
 import NotificationSystem from "./NotificationSystem";
+import FoodLoggingComponent from "./FoodLoggingComponent";
+import RecipesPage from "./RecipesPage";
 import Logo from "./Logo";
 
 interface Patient {
