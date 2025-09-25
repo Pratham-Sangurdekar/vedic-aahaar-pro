@@ -26,6 +26,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ThemeToggle from "./ThemeToggle";
 
 interface Doctor {
   id: string;
@@ -291,9 +292,12 @@ const DoctorDashboard = () => {
             </Button>
           </nav>
 
-          <Button variant="outline" onClick={signOut} className="transition-mystic">
-            Logout
-          </Button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Button variant="outline" onClick={signOut} className="transition-mystic">
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 

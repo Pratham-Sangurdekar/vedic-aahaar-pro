@@ -68,13 +68,8 @@ const NewLandingPage = () => {
   };
 
   const handleBookConsultation = () => {
-    if (user) {
-      // If logged in, take them to find doctors
-      navigate('/auth'); // Will redirect to dashboard based on user type
-    } else {
-      // If not logged in, show consultation modal
-      setIsConsultationModalOpen(true);
-    }
+    // Always show consultation modal for booking
+    setIsConsultationModalOpen(true);
   };
 
   return (

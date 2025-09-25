@@ -28,12 +28,12 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "@/contexts/ThemeContext";
 import { t } from "@/utils/translations";
 import { generateDietPDF } from "@/utils/pdfGenerator";
 import ChatInterface from "./ChatInterface";
 import NotificationSystem from "./NotificationSystem";
-import ThemeToggle from "./ThemeToggle";
 
 interface Patient {
   id: string;
@@ -328,9 +328,12 @@ const PatientDashboard = () => {
             </Button>
           </nav>
 
-          <Button variant="outline" onClick={signOut} className="transition-mystic">
-            Logout
-          </Button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Button variant="outline" onClick={signOut} className="transition-mystic">
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 

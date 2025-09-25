@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { Menu, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Logo from './Logo';
+import ThemeToggle from './ThemeToggle';
 
 const Navbar: React.FC = () => {
   const { user, userType, signOut } = useAuth();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('aarambh');
@@ -54,15 +57,8 @@ const Navbar: React.FC = () => {
   };
 
   const handleAuth = () => {
-    if (user) {
-      if (userType === 'patient') {
-        window.location.href = '/patient/dashboard';
-      } else if (userType === 'doctor') {
-        window.location.href = '/doctor/dashboard';
-      }
-    } else {
-      window.location.href = '/auth';
-    }
+    // Always go to auth page for landing page
+    navigate('/auth');
   };
 
   return (
@@ -102,20 +98,13 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            {user ? (
-              <div className="flex items-center space-x-3">
-                <Button variant="outline" onClick={handleAuth}>
-                  Dashboard
-                </Button>
-                <Button variant="ghost" onClick={signOut}>
-                  Sign Out
-                </Button>
-              </div>
-            ) : (
-              <Button onClick={handleAuth} className="bg-primary hover:bg-primary/90">
-                Sign In
-              </Button>
-            )}
+            <ThemeToggle />
+            <Button onClick={handleAuth} className="bg-primary hover:bg-primary/90">
+              Login
+            </Button>
+            <Button variant="outline" onClick={handleAuth}>
+              Sign Up
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -148,21 +137,16 @@ const Navbar: React.FC = () => {
                 </button>
               ))}
               
-              <div className="pt-4 border-t border-border">
-                {user ? (
-                  <div className="space-y-2">
-                    <Button variant="outline" onClick={handleAuth} className="w-full">
-                      Dashboard
-                    </Button>
-                    <Button variant="ghost" onClick={signOut} className="w-full">
-                      Sign Out
-                    </Button>
-                  </div>
-                ) : (
-                  <Button onClick={handleAuth} className="w-full bg-primary hover:bg-primary/90">
-                    Sign In
-                  </Button>
-                )}
+              <div className="pt-4 border-t border-border space-y-3">
+                <div className="flex justify-center">
+                  <ThemeToggle />
+                </div>
+                <Button onClick={handleAuth} className="w-full bg-primary hover:bg-primary/90">
+                  Login
+                </Button>
+                <Button variant="outline" onClick={handleAuth} className="w-full">
+                  Sign Up
+                </Button>
               </div>
             </div>
           </div>
