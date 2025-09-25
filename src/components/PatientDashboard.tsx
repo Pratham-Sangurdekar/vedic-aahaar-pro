@@ -36,6 +36,7 @@ import ChatInterface from "./ChatInterface";
 import NotificationSystem from "./NotificationSystem";
 import FoodLoggingComponent from "./FoodLoggingComponent";
 import RecipesPage from "./RecipesPage";
+import GyanModule from "./GyanModule";
 import Logo from "./Logo";
 
 interface Patient {
@@ -314,6 +315,13 @@ const PatientDashboard = () => {
               className="sanskrit-title transition-mystic"
             >
               Gyan
+            </Button>
+            <Button 
+              variant={activeTab === "recipes" ? "default" : "ghost"}
+              onClick={() => setActiveTab("recipes")}
+              className="sanskrit-title transition-mystic"
+            >
+              Recipes
             </Button>
             <Button 
               variant={activeTab === "chat" ? "default" : "ghost"}
@@ -662,6 +670,20 @@ const PatientDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Recipes */}
+          <TabsContent value="recipes" className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-4xl font-bold sanskrit-title gradient-text mb-4">
+                Ayurvedic Recipes
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Explore traditional recipes for your dosha balance
+              </p>
+            </div>
+
+            <RecipesPage />
+          </TabsContent>
+
           {/* Education */}
           <TabsContent value="education" className="space-y-8">
             <div className="text-center">
@@ -673,15 +695,7 @@ const PatientDashboard = () => {
               </p>
             </div>
 
-            <Card className="mandala-shadow">
-              <CardContent className="p-8 text-center">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Educational Content Coming Soon</h3>
-                <p className="text-muted-foreground">
-                  Comprehensive learning modules about Ayurvedic nutrition, dosha balance, and wellness practices will be available in the next update.
-                </p>
-              </CardContent>
-            </Card>
+            <GyanModule />
           </TabsContent>
 
           {/* Chat */}
@@ -695,11 +709,41 @@ const PatientDashboard = () => {
               </p>
             </div>
 
-            <ChatInterface 
-              recipientId="doctor-demo-id"
-              recipientType="doctor"
-              recipientName="Dr. Priya Sharma"
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Doctor List */}
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <CardTitle className="sanskrit-title">Available Doctors</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    { id: '1', name: 'Dr. Priya Sharma', specialization: 'Panchakarma' },
+                    { id: '2', name: 'Dr. Rajesh Kumar', specialization: 'Nutrition' },
+                    { id: '3', name: 'Dr. Meera Patel', specialization: 'Women\'s Health' }
+                  ].map((doctor) => (
+                    <div key={doctor.id} className="p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-mystic">
+                      <h4 className="font-medium">{doctor.name}</h4>
+                      <p className="text-sm text-muted-foreground">{doctor.specialization}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Chat Interface */}
+              <div className="lg:col-span-2">
+                <Card className="mandala-shadow">
+                  <CardContent className="p-6">
+                    <div className="text-center py-12">
+                      <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Select a Doctor to Chat</h3>
+                      <p className="text-muted-foreground">
+                        Choose a doctor from the list to start a conversation
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </TabsContent>
 
           {/* Profile */}

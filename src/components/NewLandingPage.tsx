@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Calculator, MessageSquare, Users, Star, ArrowRight, FileText, Brain, Heart, Download, Play } from 'lucide-react';
+import { Sparkles, Calculator, MessageSquare, Users, Star, ArrowRight, FileText, Brain, Heart, Download, Play, ChefHat, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import ayurvedicSpicesHero from '@/assets/ayurvedic-spices-hero.jpg';
@@ -112,7 +112,8 @@ const NewLandingPage = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
               size="lg" 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg mystic-glow transition-mystic"
+              variant="cta"
+              className="px-8 py-4 text-lg mystic-glow transition-mystic"
               onClick={handleBookConsultation}
             >
               Book Consultation
@@ -120,8 +121,8 @@ const NewLandingPage = () => {
             </Button>
             <Button 
               size="lg" 
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-foreground px-8 py-4 text-lg transition-mystic"
+              variant="hero"
+              className="px-8 py-4 text-lg transition-mystic"
               onClick={handleGetStarted}
             >
               Begin Your Journey
@@ -173,7 +174,8 @@ const NewLandingPage = () => {
 
               <Button 
                 size="lg" 
-                className="mt-8 mystic-glow transition-mystic"
+                variant="cta"
+                className="mt-8 transition-mystic"
                 onClick={() => handleFeatureClick('diet-generator')}
               >
                 Try Generator
@@ -314,7 +316,8 @@ const NewLandingPage = () => {
 
               <Button 
                 size="lg" 
-                className="mt-8 mystic-glow transition-mystic"
+                variant="cta"
+                className="mt-8 transition-mystic"
                 onClick={() => handleFeatureClick('calorie-tracker')}
               >
                 Track Now
@@ -366,7 +369,8 @@ const NewLandingPage = () => {
 
               <Button 
                 size="lg" 
-                className="mt-8 mystic-glow transition-mystic"
+                variant="cta"
+                className="mt-8 transition-mystic"
                 onClick={() => handleFeatureClick('doctor-connectivity')}
               >
                 Find a Doctor
@@ -468,6 +472,62 @@ const NewLandingPage = () => {
         </div>
       </section>
 
+      {/* Recipes Section - Horizontal */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="container mx-auto max-w-7xl text-center">
+          <Badge variant="secondary" className="mb-4 px-4 py-2">
+            <ChefHat className="h-4 w-4 mr-2" />
+            Recipes Collection
+          </Badge>
+          
+          <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+            Ayurvedic Recipes
+          </h2>
+          
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            Discover traditional recipes designed to balance your doshas and support optimal health. Each recipe includes ingredients benefits and preparation methods.
+          </p>
+          
+          <Button 
+            size="lg" 
+            variant="cta"
+            onClick={() => handleFeatureClick('recipes')}
+            className="px-8 py-4 text-lg transition-mystic"
+          >
+            Explore Recipes
+            <ChefHat className="ml-2 h-5 w-5" />
+          </Button>
+        </div>
+      </section>
+
+      {/* Gyan Section - Horizontal */}
+      <section className="py-20 px-4 bg-background">
+        <div className="container mx-auto max-w-7xl text-center">
+          <Badge variant="secondary" className="mb-4 px-4 py-2">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Gyan Knowledge Center
+          </Badge>
+          
+          <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+            Ayurvedic Wisdom
+          </h2>
+          
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            Learn the fundamentals of Ayurveda through interactive modules. Understand your constitution, seasonal eating, and the science behind ancient healing.
+          </p>
+          
+          <Button 
+            size="lg" 
+            variant="cta"
+            onClick={() => handleFeatureClick('gyan')}
+            className="px-8 py-4 text-lg transition-mystic"
+          >
+            Start Learning
+            <BookOpen className="ml-2 h-5 w-5" />
+          </Button>
+        </div>
+      </section>
+
       {/* Final CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-br from-primary/10 via-secondary/5 to-background">
         <div className="container mx-auto max-w-4xl text-center">
@@ -486,8 +546,9 @@ const NewLandingPage = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
               size="lg" 
+              variant="cta"
               onClick={handleGetStarted}
-              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white px-8 py-4 text-lg font-semibold mystic-glow transition-mystic"
+              className="px-8 py-4 text-lg font-semibold transition-mystic"
             >
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
