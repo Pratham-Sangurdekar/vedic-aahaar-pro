@@ -1,0 +1,580 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Sparkles, Calculator, MessageSquare, Users, Star, ArrowRight, FileText, Brain, Heart, Download, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import ayurvedicSpicesHero from '@/assets/ayurvedic-spices-hero.jpg';
+import Navbar from './Navbar';
+import ConsultationModal from './ConsultationModal';
+
+const NewLandingPage = () => {
+  const navigate = useNavigate();
+  const { user, userType } = useAuth();
+  const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState<Record<string, boolean>>({});
+
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setIsVisible(prev => ({
+            ...prev,
+            [entry.target.id]: true
+          }));
+        }
+      });
+    }, observerOptions);
+
+    // Observe all sections
+    const sections = ['hero', 'diet-generator', 'calorie-tracker', 'doctor-connectivity', 'chat-feature'];
+    sections.forEach(sectionId => {
+      const element = document.getElementById(sectionId);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleGetStarted = () => {
+    if (user) {
+      if (userType === 'patient') {
+        navigate('/patient/dashboard');
+      } else if (userType === 'doctor') {
+        navigate('/doctor/dashboard');
+      }
+    } else {
+      navigate('/auth');
+    }
+  };
+
+  const handleFeatureClick = (feature: string) => {
+    if (user) {
+      if (userType === 'patient') {
+        navigate('/patient/dashboard');
+      } else if (userType === 'doctor') {
+        navigate('/doctor/dashboard');
+      }
+    } else {
+      navigate('/auth');
+    }
+  };
+
+  const handleBookConsultation = () => {
+    if (user) {
+      // If logged in, take them to find doctors
+      navigate('/auth'); // Will redirect to dashboard based on user type
+    } else {
+      // If not logged in, show consultation modal
+      setIsConsultationModalOpen(true);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Navigation */}
+      <Navbar />
+
+      {/* Hero Section - Aarambh */}
+      <section 
+        id="hero" 
+        className={`relative min-h-screen flex items-center justify-center overflow-hidden transition-all duration-1000 ${
+          isVisible.hero ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        }`}
+      >
+        <div className="absolute inset-0">
+          <img
+            src={ayurvedicSpicesHero}
+            alt="Ayurvedic spices in traditional bowls"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
+        
+        {/* Vedic frieze divider */}
+        <div className="absolute top-20 left-0 right-0 vedic-border"></div>
+        
+        {/* Deity watermark - subtle background */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="w-full h-full bg-contain bg-center bg-no-repeat" 
+               style={{backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDIwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMTAwIiBjeT0iNzAiIHI9IjMwIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik03MCAyMDBMMTMwIDIwME0xMDAgMTAwTDEwMCAyNDAiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+')"}}></div>
+        </div>
+        
+        <div className="relative z-10 container mx-auto px-4 text-center text-white">
+          <h1 className="sanskrit-title text-6xl md:text-8xl font-bold mb-4 gradient-text drop-shadow-lg">
+            Ved-Aahaar
+          </h1>
+          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-4xl mx-auto leading-relaxed">
+            वेद आहार - Ancient Ayurvedic wisdom meets modern technology for personalized nutrition and holistic wellness
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg mystic-glow transition-mystic"
+              onClick={handleBookConsultation}
+            >
+              Book Consultation
+              <Heart className="ml-2 h-5 w-5" />
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="border-white text-white hover:bg-white hover:text-foreground px-8 py-4 text-lg transition-mystic"
+              onClick={handleGetStarted}
+            >
+              Begin Your Journey
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Yojan - AI Diet Generator Section */}
+      <section 
+        id="diet-generator" 
+        className={`min-h-screen w-full py-20 px-4 transition-all duration-1000 ${
+          isVisible['diet-generator'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        } bg-background`}
+      >
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Content Side */}
+            <div className="space-y-6">
+              <Badge variant="secondary" className="mb-4 px-4 py-2">
+                <Brain className="h-4 w-4 mr-2" />
+                Yojan - AI Powered
+              </Badge>
+              
+              <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+                AI-Powered Diet Generator
+              </h2>
+              
+              <p className="text-xl text-muted-foreground mb-8">
+                Experience personalized Ayurvedic meal plans crafted by AI that understands your unique constitution, health goals, and dietary preferences. Get custom recipes with detailed ingredient benefits and step-by-step preparation guidance.
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex items-center text-lg">
+                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+                  <span>Personalized dosha-based meal planning</span>
+                </div>
+                <div className="flex items-center text-lg">
+                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+                  <span>Custom recipes with Ayurvedic benefits</span>
+                </div>
+                <div className="flex items-center text-lg">
+                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+                  <span>Seasonal ingredient recommendations</span>
+                </div>
+              </div>
+
+              <Button 
+                size="lg" 
+                className="mt-8 mystic-glow transition-mystic"
+                onClick={() => handleFeatureClick('diet-generator')}
+              >
+                Try Generator
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Visual Side - Mock UI Screenshot */}
+            <div className="relative">
+              <Card className="mandala-shadow transition-all duration-500 hover:scale-105 border-border/50">
+                <CardContent className="p-8 text-center relative overflow-hidden">
+                  {/* Background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-600/10" />
+                  
+                  <div className="relative z-10">
+                    <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mb-8 text-white shadow-lg">
+                      <Brain className="h-16 w-16" />
+                    </div>
+                    
+                    <h3 className="text-3xl font-semibold mb-4 sanskrit-title">
+                      Smart AI Analysis
+                    </h3>
+                    <p className="text-muted-foreground text-lg mb-6">
+                      Advanced algorithms analyze your constitution and generate personalized Ayurvedic meal plans
+                    </p>
+                    
+                    {/* Mock UI Elements */}
+                    <div className="bg-muted rounded-lg p-4 text-left space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Vata Balance:</span>
+                        <div className="w-24 h-2 bg-green-200 rounded-full">
+                          <div className="w-16 h-2 bg-green-500 rounded-full"></div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Pitta Balance:</span>
+                        <div className="w-24 h-2 bg-yellow-200 rounded-full">
+                          <div className="w-18 h-2 bg-yellow-500 rounded-full"></div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Kapha Balance:</span>
+                        <div className="w-24 h-2 bg-blue-200 rounded-full">
+                          <div className="w-12 h-2 bg-blue-500 rounded-full"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Ankh - Calorie Tracker Section */}
+      <section 
+        id="calorie-tracker" 
+        className={`min-h-screen w-full py-20 px-4 transition-all duration-1000 ${
+          isVisible['calorie-tracker'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        } bg-muted/20`}
+      >
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Visual Side - Mock UI Screenshot */}
+            <div className="relative order-2 lg:order-1">
+              <Card className="mandala-shadow transition-all duration-500 hover:scale-105 border-border/50">
+                <CardContent className="p-8 text-center relative overflow-hidden">
+                  {/* Background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-orange-500/10" />
+                  
+                  <div className="relative z-10">
+                    <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full mb-8 text-white shadow-lg">
+                      <Calculator className="h-16 w-16" />
+                    </div>
+                    
+                    <h3 className="text-3xl font-semibold mb-4 sanskrit-title">
+                      Ayurvedic Tracking
+                    </h3>
+                    <p className="text-muted-foreground text-lg mb-6">
+                      Track calories with Rasa and Guna classification according to ancient nutritional wisdom
+                    </p>
+                    
+                    {/* Mock Daily Log */}
+                    <div className="bg-muted rounded-lg p-4 text-left space-y-3">
+                      <div className="text-sm font-medium text-center mb-2">Today's Intake</div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Sweet (Madhura):</span>
+                        <Badge variant="secondary">65%</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Sour (Amla):</span>
+                        <Badge variant="secondary">15%</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Salty (Lavana):</span>
+                        <Badge variant="secondary">10%</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Pungent (Katu):</span>
+                        <Badge variant="secondary">8%</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Content Side */}
+            <div className="space-y-6 order-1 lg:order-2">
+              <Badge variant="secondary" className="mb-4 px-4 py-2">
+                <Calculator className="h-4 w-4 mr-2" />
+                Ankh - Ayurvedic Analytics
+              </Badge>
+              
+              <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+                Ayurvedic Calorie Tracker
+              </h2>
+              
+              <p className="text-xl text-muted-foreground mb-8">
+                Track your daily nutrition with Ayurvedic principles, including rasa and guna analysis. Monitor macro and micronutrients while maintaining perfect balance according to ancient wisdom and your unique constitution.
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex items-center text-lg">
+                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+                  <span>Six-taste (Rasa) balance tracking</span>
+                </div>
+                <div className="flex items-center text-lg">
+                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+                  <span>Guna (qualities) analysis</span>
+                </div>
+                <div className="flex items-center text-lg">
+                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+                  <span>Daily progress monitoring</span>
+                </div>
+              </div>
+
+              <Button 
+                size="lg" 
+                className="mt-8 mystic-glow transition-mystic"
+                onClick={() => handleFeatureClick('calorie-tracker')}
+              >
+                Track Now
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Sambandh - Doctor Connectivity Section */}
+      <section 
+        id="doctor-connectivity" 
+        className={`min-h-screen w-full py-20 px-4 transition-all duration-1000 ${
+          isVisible['doctor-connectivity'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        } bg-background`}
+      >
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Content Side */}
+            <div className="space-y-6">
+              <Badge variant="secondary" className="mb-4 px-4 py-2">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Sambandh - Doctor Network
+              </Badge>
+              
+              <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+                Expert Connectivity & Real-Time Chat
+              </h2>
+              
+              <p className="text-xl text-muted-foreground mb-8">
+                Connect with certified Ayurvedic practitioners for personalized guidance, consultations, and real-time chat support. Share files, receive custom diet charts, and get expert advice whenever you need it.
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex items-center text-lg">
+                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+                  <span>Real-time chat with certified doctors</span>
+                </div>
+                <div className="flex items-center text-lg">
+                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+                  <span>File sharing and PDF attachments</span>
+                </div>
+                <div className="flex items-center text-lg">
+                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+                  <span>Personalized consultation scheduling</span>
+                </div>
+              </div>
+
+              <Button 
+                size="lg" 
+                className="mt-8 mystic-glow transition-mystic"
+                onClick={() => handleFeatureClick('doctor-connectivity')}
+              >
+                Find a Doctor
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Visual Side - Doctor Profiles */}
+            <div className="relative">
+              <Card className="mandala-shadow transition-all duration-500 hover:scale-105 border-border/50">
+                <CardContent className="p-8 relative overflow-hidden">
+                  {/* Background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-600/10" />
+                  
+                  <div className="relative z-10">
+                    <div className="text-center mb-6">
+                      <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4 text-white shadow-lg">
+                        <MessageSquare className="h-16 w-16" />
+                      </div>
+                      <h3 className="text-3xl font-semibold sanskrit-title">
+                        Expert Network
+                      </h3>
+                    </div>
+                    
+                    {/* Mock Doctor Cards */}
+                    <div className="space-y-4">
+                      <div className="bg-muted/50 rounded-lg p-4 flex items-center gap-3">
+                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold">
+                          DS
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">Dr. Sunita Sharma</div>
+                          <div className="text-sm text-muted-foreground">Digestive Health Expert</div>
+                        </div>
+                        <Badge variant="secondary">Online</Badge>
+                      </div>
+                      
+                      <div className="bg-muted/50 rounded-lg p-4 flex items-center gap-3">
+                        <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center text-white font-bold">
+                          RK
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">Dr. Rajesh Kumar</div>
+                          <div className="text-sm text-muted-foreground">Metabolic Specialist</div>
+                        </div>
+                        <Badge variant="outline">Available</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Real-Time Chat Feature Section */}
+      <section 
+        id="chat-feature" 
+        className={`w-full py-20 px-4 transition-all duration-1000 ${
+          isVisible['chat-feature'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        } bg-muted/20`}
+      >
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+              Instant Consults & File Exchange
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Experience seamless communication with your Ayurvedic practitioners through our advanced real-time chat system with file sharing capabilities.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="mandala-shadow transition-all duration-500 hover:scale-105">
+              <CardContent className="p-6 text-center">
+                <MessageSquare className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Instant Messaging</h3>
+                <p className="text-muted-foreground">Real-time chat with typing indicators and read receipts</p>
+              </CardContent>
+            </Card>
+
+            <Card className="mandala-shadow transition-all duration-500 hover:scale-105">
+              <CardContent className="p-6 text-center">
+                <FileText className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">PDF Exchange</h3>
+                <p className="text-muted-foreground">Share diet charts, prescriptions, and medical documents</p>
+              </CardContent>
+            </Card>
+
+            <Card className="mandala-shadow transition-all duration-500 hover:scale-105">
+              <CardContent className="p-6 text-center">
+                <Heart className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Follow-up Care</h3>
+                <p className="text-muted-foreground">Appointment scheduling and continuous health monitoring</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="py-20 px-4 bg-gradient-to-br from-primary/10 via-secondary/5 to-background">
+        <div className="container mx-auto max-w-4xl text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-full mb-8 text-white animate-pulse">
+            <Sparkles className="h-10 w-10" />
+          </div>
+          
+          <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+            Begin Your Ayurvedic Journey
+          </h2>
+          
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Join thousands who have transformed their health through personalized Ayurvedic nutrition powered by AI and guided by expert practitioners.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              size="lg" 
+              onClick={handleGetStarted}
+              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white px-8 py-4 text-lg font-semibold mystic-glow transition-mystic"
+            >
+              Start Free Trial
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            
+            <Button 
+              size="lg" 
+              variant="outline"
+              onClick={handleBookConsultation}
+              className="px-8 py-4 text-lg font-semibold transition-mystic"
+            >
+              Book Consultation
+              <Heart className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Footer */}
+      <footer className="border-t border-border bg-background">
+        <div className="vedic-border"></div>
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="space-y-4">
+              <h4 className="font-semibold sanskrit-title gradient-text text-lg">Ved-Aahaar</h4>
+              <p className="text-muted-foreground text-sm">
+                Bridging ancient Ayurvedic wisdom with modern nutritional science for holistic wellness.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4 sanskrit-title">Platform</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#diet-generator" className="hover:text-primary transition-mystic">Diet Generator</a></li>
+                <li><a href="#calorie-tracker" className="hover:text-primary transition-mystic">Calorie Tracker</a></li>
+                <li><a href="#doctor-connectivity" className="hover:text-primary transition-mystic">Doctor Network</a></li>
+                <li><a href="/recipes" className="hover:text-primary transition-mystic">Recipes</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4 sanskrit-title">Support</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-primary transition-mystic">Help Center</a></li>
+                <li><a href="#" className="hover:text-primary transition-mystic">Contact Us</a></li>
+                <li><a href="#" className="hover:text-primary transition-mystic">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-primary transition-mystic">Terms of Service</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4 sanskrit-title">Connect</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-primary transition-mystic">Newsletter</a></li>
+                <li><a href="#" className="hover:text-primary transition-mystic">Community</a></li>
+                <li><a href="/gyan" className="hover:text-primary transition-mystic">Gyan Center</a></li>
+                <li><a href="#" className="hover:text-primary transition-mystic">Blog</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-border mt-12 pt-8 text-center">
+            <p className="text-muted-foreground text-sm">
+              © 2024 Ved-Aahaar. All rights reserved. Made with ❤️ for holistic wellness.
+            </p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Consultation Modal */}
+      <ConsultationModal 
+        isOpen={isConsultationModalOpen}
+        onClose={() => setIsConsultationModalOpen(false)}
+      />
+    </div>
+  );
+};
+
+export default NewLandingPage;
