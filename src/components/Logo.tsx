@@ -16,7 +16,7 @@ const Logo: React.FC<LogoProps> = ({ className = "", variant = 'light', onClick 
         viewBox="0 0 40 40" 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0"
+        className="shrink-0 text-current"
       >
         {/* Mortar Bowl - simple line version */}
         <path 

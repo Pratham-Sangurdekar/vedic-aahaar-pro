@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Logo from './Logo';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const Navbar: React.FC = () => {
   const { user, userType, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,8 +19,8 @@ const Navbar: React.FC = () => {
     { id: 'yojan', label: 'Yojan', href: '#diet-generator' },
     { id: 'ankh', label: 'Ankh', href: '#calorie-tracker' },
     { id: 'sambandh', label: 'Sambandh', href: '#doctor-connectivity' },
-    { id: 'recipes', label: 'Recipes', href: '/recipes' },
-    { id: 'gyan', label: 'Gyan', href: '/gyan' },
+    { id: 'recipes', label: 'Recipes', href: '#recipes-section' },
+    { id: 'gyan', label: 'Gyan', href: '#gyan-section' },
   ];
 
   useEffect(() => {
@@ -97,6 +99,18 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="text-foreground hover:text-primary"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </Button>
             <Button onClick={handleAuth} className="bg-primary hover:bg-primary/90 text-primary-foreground">
               Login
             </Button>
@@ -136,6 +150,20 @@ const Navbar: React.FC = () => {
               ))}
               
               <div className="pt-4 border-t border-border space-y-3">
+                <div className="flex justify-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="text-foreground hover:text-primary"
+                  >
+                    {theme === 'dark' ? (
+                      <Sun className="h-4 w-4" />
+                    ) : (
+                      <Moon className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
                 <Button onClick={handleAuth} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                   Login
                 </Button>

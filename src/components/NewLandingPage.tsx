@@ -468,56 +468,139 @@ const NewLandingPage = () => {
       </section>
 
       {/* Recipes Section - Horizontal */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section 
+        id="recipes-section" 
+        className="py-20 px-4 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/20 dark:via-orange-950/20 dark:to-red-950/20"
+      >
         <div className="container mx-auto max-w-7xl text-center">
-          <Badge variant="secondary" className="mb-4 px-4 py-2">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full mb-8 text-white shadow-lg animate-pulse">
+            <ChefHat className="h-10 w-10" />
+          </div>
+          
+          <Badge variant="secondary" className="mb-4 px-4 py-2 bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
             <ChefHat className="h-4 w-4 mr-2" />
-            Recipes Collection
+            Traditional Recipes Collection
           </Badge>
           
           <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
             Ayurvedic Recipes
           </h2>
           
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Discover traditional recipes designed to balance your doshas and support optimal health. Each recipe includes ingredients benefits and preparation methods.
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+            Discover time-honored recipes crafted to balance your doshas and nourish your body. Each recipe includes detailed ingredient benefits, preparation methods, and seasonal recommendations from certified Ayurvedic practitioners.
           </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
+            {[
+              { 
+                title: "Golden Turmeric Milk", 
+                dosha: "Vata & Kapha", 
+                time: "5 mins",
+                description: "Anti-inflammatory nighttime elixir with warm spices"
+              },
+              { 
+                title: "Tri-Dosha Kitchari", 
+                dosha: "All Doshas", 
+                time: "30 mins",
+                description: "Complete protein meal with rice, lentils, and healing spices"
+              },
+              { 
+                title: "Cooling Mint Chutney", 
+                dosha: "Pitta", 
+                time: "10 mins",
+                description: "Refreshing digestive aid perfect for summer meals"
+              }
+            ].map((recipe, index) => (
+              <div key={index} className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-6 border border-orange-200 dark:border-orange-800/30 hover:scale-105 transition-all duration-300 hover:shadow-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-400 rounded-full flex items-center justify-center mb-4 mx-auto">
+                  <ChefHat className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2 text-foreground">{recipe.title}</h3>
+                <p className="text-sm text-orange-600 dark:text-orange-400 mb-2">Best for {recipe.dosha}</p>
+                <p className="text-xs text-muted-foreground mb-3">⏱️ {recipe.time}</p>
+                <p className="text-sm text-muted-foreground">{recipe.description}</p>
+              </div>
+            ))}
+          </div>
           
           <Button 
             size="lg" 
             variant="cta"
             onClick={() => handleFeatureClick('recipes')}
-            className="px-8 py-4 text-lg transition-mystic"
+            className="px-8 py-4 text-lg transition-mystic shadow-lg hover:shadow-xl"
           >
-            Explore Recipes
+            Explore All Recipes
             <ChefHat className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </section>
 
       {/* Gyan Section - Horizontal */}
-      <section className="py-20 px-4 bg-background">
+      <section 
+        id="gyan-section" 
+        className="py-20 px-4 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/20 dark:via-teal-950/20 dark:to-cyan-950/20"
+      >
         <div className="container mx-auto max-w-7xl text-center">
-          <Badge variant="secondary" className="mb-4 px-4 py-2">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full mb-8 text-white shadow-lg animate-pulse">
+            <BookOpen className="h-10 w-10" />
+          </div>
+          
+          <Badge variant="secondary" className="mb-4 px-4 py-2 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
             <BookOpen className="h-4 w-4 mr-2" />
-            Gyan Knowledge Center
+            Ancient Wisdom Knowledge Center
           </Badge>
           
           <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
-            Ayurvedic Wisdom
+            Ayurvedic Gyan
           </h2>
           
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Learn the fundamentals of Ayurveda through interactive modules. Understand your constitution, seasonal eating, and the science behind ancient healing.
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+            Dive deep into the fundamentals of Ayurveda through interactive learning modules. Master the principles of constitutional analysis, seasonal eating, rasa balance, and the timeless science of holistic healing.
           </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 max-w-6xl mx-auto">
+            {[
+              { 
+                title: "Dosha Constitution", 
+                icon: "🧘‍♂️",
+                lessons: "12 Lessons",
+                description: "Understand Vata, Pitta, and Kapha fundamentals"
+              },
+              { 
+                title: "Six Tastes (Rasa)", 
+                icon: "👅", 
+                lessons: "8 Lessons",
+                description: "Master the art of taste balancing for health"
+              },
+              { 
+                title: "Seasonal Eating", 
+                icon: "🌱", 
+                lessons: "6 Lessons",
+                description: "Align your diet with natural rhythms"
+              },
+              { 
+                title: "Food Combining", 
+                icon: "🍽️", 
+                lessons: "10 Lessons",
+                description: "Learn proper food combinations for digestion"
+              }
+            ].map((module, index) => (
+              <div key={index} className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-6 border border-emerald-200 dark:border-emerald-800/30 hover:scale-105 transition-all duration-300 hover:shadow-lg">
+                <div className="text-3xl mb-4">{module.icon}</div>
+                <h3 className="font-semibold text-lg mb-2 text-foreground">{module.title}</h3>
+                <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-2">{module.lessons}</p>
+                <p className="text-sm text-muted-foreground">{module.description}</p>
+              </div>
+            ))}
+          </div>
           
           <Button 
             size="lg" 
             variant="cta"
             onClick={() => handleFeatureClick('gyan')}
-            className="px-8 py-4 text-lg transition-mystic"
+            className="px-8 py-4 text-lg transition-mystic shadow-lg hover:shadow-xl"
           >
-            Start Learning
+            Begin Learning Journey
             <BookOpen className="ml-2 h-5 w-5" />
           </Button>
         </div>
