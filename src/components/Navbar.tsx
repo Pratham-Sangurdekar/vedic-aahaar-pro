@@ -4,7 +4,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Logo from './Logo';
-import ThemeToggle from './ThemeToggle';
 
 const Navbar: React.FC = () => {
   const { user, userType, signOut } = useAuth();
@@ -98,7 +97,6 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <ThemeToggle />
             <Button onClick={handleAuth} className="bg-primary hover:bg-primary/90 text-primary-foreground">
               Login
             </Button>
@@ -138,9 +136,6 @@ const Navbar: React.FC = () => {
               ))}
               
               <div className="pt-4 border-t border-border space-y-3">
-                <div className="flex justify-center">
-                  <ThemeToggle />
-                </div>
                 <Button onClick={handleAuth} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                   Login
                 </Button>

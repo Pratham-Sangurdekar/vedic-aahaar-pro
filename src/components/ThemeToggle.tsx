@@ -14,6 +14,7 @@ const ThemeToggle: React.FC = () => {
         size="sm"
         onClick={toggleLanguage}
         className="relative"
+        title="Switch dashboard language / डैशबोर्ड भाषा बदलें"
       >
         <Languages className="h-4 w-4 mr-1" />
         <span className="text-xs font-medium">
