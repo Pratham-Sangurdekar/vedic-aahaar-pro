@@ -41,6 +41,12 @@ import GyanModule from "./GyanModule";
 import Logo from "./Logo";
 import ProfileSection from "./ProfileSection";
 import DashboardStats from "./DashboardStats";
+import ArogyamShop from "./ArogyamShop";
+import CommunityPage from "./CommunityPage";
+import SoundsLibrary from "./SoundsLibrary";
+import YogaModule from "./YogaModule";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 
 interface Patient {
   id: string;
@@ -291,6 +297,33 @@ const PatientDashboard = () => {
             >
               Recipes
             </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant={["shop", "community", "sounds", "yoga"].includes(activeTab) ? "default" : "ghost"}
+                  className="sanskrit-title transition-mystic"
+                >
+                  Arogyam
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setActiveTab("shop")}>
+                  🛒 Shop
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("community")}>
+                  👥 Community
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("sounds")}>
+                  🎵 Sounds of the Vedas
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("yoga")}>
+                  🧘 Yoga
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             <Button 
               variant={activeTab === "chat" ? "default" : "ghost"}
               onClick={() => setActiveTab("chat")}
@@ -652,16 +685,34 @@ const PatientDashboard = () => {
 
           {/* Profile */}
           <TabsContent value="profile" className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-4xl font-bold sanskrit-title gradient-text mb-4">
-                Your Profile
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                Manage your wellness information
-              </p>
-            </div>
+            <SafeBoundary>
+              <ProfileSection userType="patient" />
+            </SafeBoundary>
+          </TabsContent>
 
-            <ProfileSection userType="patient" />
+          {/* Arogyam Sections */}
+          <TabsContent value="shop" className="space-y-8">
+            <SafeBoundary>
+              <ArogyamShop />
+            </SafeBoundary>
+          </TabsContent>
+
+          <TabsContent value="community" className="space-y-8">
+            <SafeBoundary>
+              <CommunityPage />
+            </SafeBoundary>
+          </TabsContent>
+
+          <TabsContent value="sounds" className="space-y-8">
+            <SafeBoundary>
+              <SoundsLibrary />
+            </SafeBoundary>
+          </TabsContent>
+
+          <TabsContent value="yoga" className="space-y-8">
+            <SafeBoundary>
+              <YogaModule />
+            </SafeBoundary>
           </TabsContent>
         </Tabs>
       </div>

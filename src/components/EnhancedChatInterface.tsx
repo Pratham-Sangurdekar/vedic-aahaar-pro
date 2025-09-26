@@ -203,13 +203,25 @@ const EnhancedChatInterface: React.FC = () => {
             doctor_id: user.id,
             created_at: lastMsg?.created_at || new Date().toISOString(),
             last_message_at: lastMsg?.created_at || null,
-            doctor: { id: user.id, name: '', email: '', degree: '', institution: '', experience_years: 0, specialization: '' } as any,
+            doctor: { 
+              id: user.id, 
+              name: '', 
+              email: '', 
+              degree: '', 
+              institution: '', 
+              experience_years: 0, 
+              specialization: '',
+              certifications: '',
+              created_at: new Date().toISOString(),
+              profile_pic_url: '',
+              theme_preference: 'light'
+            } as any,
             patient: patient as any,
           } as Chat;
         });
 
         const derived = await Promise.all(derivedPromises);
-        chatsWithData = derived;
+        chatsWithData = derived as any;
       }
 
       setChats(chatsWithData);

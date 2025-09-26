@@ -146,7 +146,23 @@ const RecipesPage: React.FC = () => {
       if (pageNum === 1 && merged.length < 50) {
         const deficit = 60 - merged.length;
         const samples = generateSampleRecipes(Math.max(0, deficit));
-        merged = [...merged, ...samples];
+        merged = [...merged, ...samples.map(s => ({ 
+          ...s, 
+          author_id: s.author_id || '',
+          calories_per_serving: s.calories_per_serving || 0,
+          cooking_time_minutes: s.cooking_time_minutes || 0,
+          created_at: s.created_at || new Date().toISOString(),
+          cuisine: s.cuisine || '',
+          description: s.description || '',
+          diet_type: s.diet_type || '',
+          difficulty_level: s.difficulty_level || '',
+          image_url: s.image_url || '',
+          is_favorited: s.is_favorited || false,
+          ingredients: s.ingredients || [],
+          instructions: s.instructions || '',
+          rasa: s.rasa || '',
+          title: s.title
+        }))];
       }
 
       if (pageNum === 1) {
