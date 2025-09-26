@@ -479,6 +479,7 @@ const RecipesPage: React.FC = () => {
                         <SelectValue placeholder="Select cuisine" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="">All Cuisines</SelectItem>
                         {cuisines.map(cuisine => (
                           <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
                         ))}
@@ -493,6 +494,7 @@ const RecipesPage: React.FC = () => {
                         <SelectValue placeholder="Select diet type" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="">Select diet type</SelectItem>
                         {dietTypes.map(type => (
                           <SelectItem key={type} value={type}>{type}</SelectItem>
                         ))}
@@ -509,6 +511,7 @@ const RecipesPage: React.FC = () => {
                         <SelectValue placeholder="Select rasa" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="">Select rasa</SelectItem>
                         {rasas.map(rasa => (
                           <SelectItem key={rasa} value={rasa}>{rasa}</SelectItem>
                         ))}
@@ -523,6 +526,7 @@ const RecipesPage: React.FC = () => {
                         <SelectValue placeholder="Select difficulty" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="">Select difficulty</SelectItem>
                         {difficulties.map(difficulty => (
                           <SelectItem key={difficulty} value={difficulty}>{difficulty}</SelectItem>
                         ))}
