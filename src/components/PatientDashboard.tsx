@@ -40,7 +40,7 @@ import SafeBoundary from "./SafeBoundary";
 import GyanModule from "./GyanModule";
 import Logo from "./Logo";
 import ProfileSection from "./ProfileSection";
-import DashboardStats from "./DashboardStats";
+import ConcentricCircularTracker from "./ConcentricCircularTracker";
 import ArogyamShop from "./ArogyamShop";
 import CommunityPage from "./CommunityPage";
 import SoundsLibrary from "./SoundsLibrary";
@@ -366,7 +366,7 @@ const PatientDashboard = () => {
             </div>
 
             {/* Real-time Stats */}
-            <DashboardStats userType="patient" />
+            <ConcentricCircularTracker userType="patient" />
 
             {/* Recipes Feed */}
             <div className="space-y-6">

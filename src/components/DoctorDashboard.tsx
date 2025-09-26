@@ -30,7 +30,7 @@ import ThemeToggle from "./ThemeToggle";
 import Logo from "./Logo";
 import EnhancedChatInterface from "./EnhancedChatInterface";
 import ProfileSection from "./ProfileSection";
-import DashboardStats from "./DashboardStats";
+import ConcentricCircularTracker from "./ConcentricCircularTracker";
 
 interface Doctor {
   id: string;
@@ -293,7 +293,7 @@ const DoctorDashboard = () => {
             </div>
 
             {/* Real-time Stats */}
-            <DashboardStats userType="doctor" />
+            <ConcentricCircularTracker userType="doctor" />
 
             {/* Create Post Section */}
             <Card className="mandala-shadow">
