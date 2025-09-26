@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { Menu, X, Sun, Moon, Languages } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Logo from './Logo';
 import { useTheme } from '@/contexts/ThemeContext';
 
 const Navbar: React.FC = () => {
   const { user, userType, signOut } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, language, toggleLanguage } = useTheme();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -97,8 +97,17 @@ const Navbar: React.FC = () => {
             ))}
           </div>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop Controls */}
           <div className="hidden md:flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleLanguage}
+              className="text-foreground hover:text-primary hover:bg-muted/50 transition-all duration-200"
+              title="Toggle Language"
+            >
+              <Languages className="h-4 w-4 mr-2" /> {language === 'en' ? 'EN' : 'हिं'}
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -116,7 +125,7 @@ const Navbar: React.FC = () => {
               size="sm"
               className="bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              Login
+              {language === 'en' ? 'Login' : 'लॉगिन'}
             </Button>
             <Button 
               variant="outline" 
@@ -124,7 +133,7 @@ const Navbar: React.FC = () => {
               size="sm"
               className="border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              Sign Up
+              {language === 'en' ? 'Sign Up' : 'साइन अप'}
             </Button>
           </div>
 
@@ -164,6 +173,14 @@ const Navbar: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={toggleLanguage}
+                    className="text-foreground hover:text-primary hover:bg-muted/50 transition-all duration-200"
+                  >
+                    <Languages className="h-4 w-4 mr-2" /> {language === 'en' ? 'Switch to हिंदी' : 'Switch to English'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={toggleTheme}
                     className="text-foreground hover:text-primary hover:bg-muted/50 transition-all duration-200"
                   >
@@ -184,14 +201,14 @@ const Navbar: React.FC = () => {
                   onClick={handleAuth} 
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 shadow-sm hover:shadow-md"
                 >
-                  Login
+                  {language === 'en' ? 'Login' : 'लॉगिन'}
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={handleAuth} 
                   className="w-full border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 shadow-sm hover:shadow-md"
                 >
-                  Sign Up
+                  {language === 'en' ? 'Sign Up' : 'साइन अप'}
                 </Button>
               </div>
             </div>

@@ -2,10 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Send, MessageCircle, Paperclip, Download, FileText, Image, MoreVertical } from 'lucide-react';
+import { Send, MessageCircle, Search, Users, Stethoscope } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -14,17 +13,31 @@ import { t } from '@/utils/translations';
 
 interface ChatMessage {
   id: string;
-  chat_id: string;
   sender_id: string;
   receiver_id: string;
   message: string;
   sender_type: 'patient' | 'doctor';
   receiver_type: 'patient' | 'doctor';
   is_read: boolean;
-  read_at?: string;
-  attachment_url?: string;
-  attachment_type?: string;
   created_at: string;
+}
+
+interface Doctor {
+  id: string;
+  name: string;
+  email: string;
+  specialization: string;
+  experience_years: number;
+  degree: string;
+  institution: string;
+}
+
+interface Patient {
+  id: string;
+  name: string;
+  email: string;
+  age: number;
+  gender: string;
 }
 
 interface Chat {
@@ -32,104 +45,90 @@ interface Chat {
   patient_id: string;
   doctor_id: string;
   created_at: string;
-  last_message_at: string;
+  last_message_at: string | null;
+  doctor: Doctor;
+  patient: Patient;
 }
 
-interface ChatUser {
-  id: string;
-  name: string;
-  email: string;
-  type: 'patient' | 'doctor';
-  profile_pic_url?: string;
-  specialization?: string;
-  experience_years?: number;
-}
-
-interface EnhancedChatInterfaceProps {
-  recipientId?: string;
-  recipientType?: 'patient' | 'doctor';
-  recipientName?: string;
-  chatId?: string;
-}
-
-const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({
-  recipientId,
-  recipientType,
-  recipientName,
-  chatId: initialChatId
-}) => {
+const EnhancedChatInterface: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { language } = useTheme();
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [chatId, setChatId] = useState<string | null>(initialChatId || null);
-  const [recipientInfo, setRecipientInfo] = useState<ChatUser | null>(null);
-  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
-  const [isTyping, setIsTyping] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const userType = user?.email?.includes('@doctor.') ? 'doctor' : 'patient';
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  console.log('User type detected:', userType, 'for email:', user?.email);
 
   useEffect(() => {
-    if (recipientId && user?.id) {
-      initializeChat();
+    if (user) {
+      fetchDoctors();
+      fetchChats();
     }
-  }, [recipientId, user?.id]);
+  }, [user]);
 
   useEffect(() => {
-    if (chatId) {
+    if (selectedChat) {
       fetchMessages();
-      setupRealtimeSubscription();
-      markMessagesAsRead();
+      
+      // Set up real-time subscription for messages
+      const otherParticipantId = userType === 'patient' 
+        ? selectedChat.doctor_id 
+        : selectedChat.patient_id;
+
+      const channel = supabase
+        .channel('chat-messages')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'chat_messages',
+            filter: `or(and(sender_id.eq.${user?.id},receiver_id.eq.${otherParticipantId}),and(sender_id.eq.${otherParticipantId},receiver_id.eq.${user?.id}))`
+          },
+          (payload) => {
+            setMessages(prev => [...prev, payload.new as ChatMessage]);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
-  }, [chatId]);
+  }, [selectedChat, user?.id]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const initializeChat = async () => {
-    if (!recipientId || !user?.id) return;
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
+  const fetchDoctors = async () => {
     try {
-      // Fetch recipient info
-      await fetchRecipientInfo();
-
-      // Check if chat exists or create new one
-      const { data: existingChat, error: chatError } = await supabase
-        .from('chats')
+      console.log('Fetching doctors...');
+      const { data, error } = await supabase
+        .from('doctors')
         .select('*')
-        .or(`and(patient_id.eq.${user.id},doctor_id.eq.${recipientId}),and(patient_id.eq.${recipientId},doctor_id.eq.${user.id})`)
-        .single();
+        .order('name');
 
-      if (chatError && chatError.code !== 'PGRST116') {
-        throw chatError;
+      if (error) {
+        console.error('Error fetching doctors:', error);
+        throw error;
       }
-
-      if (existingChat) {
-        setChatId(existingChat.id);
-      } else {
-        // Create new chat (only patients can initiate)
-        if (userType === 'patient') {
-          const { data: newChat, error: newChatError } = await supabase
-            .from('chats')
-            .insert({
-              patient_id: user.id,
-              doctor_id: recipientId,
-            })
-            .select()
-            .single();
-
-          if (newChatError) throw newChatError;
-          setChatId(newChat.id);
-        }
-      }
+      
+      console.log('Doctors fetched:', data);
+      setDoctors(data || []);
     } catch (error: any) {
-      console.error('Error initializing chat:', error);
+      console.error('Error fetching doctors:', error);
       toast({
         title: t('error', language),
         description: error.message,
@@ -138,95 +137,104 @@ const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({
     }
   };
 
-  const fetchRecipientInfo = async () => {
-    if (!recipientId) return;
+  const fetchChats = async () => {
+    if (!user?.id) return;
 
     try {
-      const table = recipientType === 'doctor' ? 'doctors' : 'patients';
-      const { data, error } = await supabase
-        .from(table)
+      // For patients, show chats where they are the patient
+      // For doctors, show chats where they are the doctor
+      const filter = userType === 'patient' 
+        ? `patient_id.eq.${user.id}` 
+        : `doctor_id.eq.${user.id}`;
+
+      console.log('Fetching chats for user:', user.id, 'userType:', userType, 'filter:', filter);
+
+      const { data: chatsData, error: chatsError } = await supabase
+        .from('chats')
         .select('*')
-        .eq('id', recipientId)
-        .single();
+        .eq(userType === 'patient' ? 'patient_id' : 'doctor_id', user.id)
+        .order('last_message_at', { ascending: false });
 
-      if (error) throw error;
+      if (chatsError) throw chatsError;
+      
+      console.log('Raw chats data:', chatsData);
 
-      setRecipientInfo({
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        type: recipientType!,
-        profile_pic_url: data.profile_pic_url,
-        specialization: recipientType === 'doctor' ? (data as any).specialization : undefined,
-        experience_years: recipientType === 'doctor' ? (data as any).experience_years : undefined,
+      // Fetch doctor and patient data separately
+      const chatPromises = (chatsData || []).map(async (chat) => {
+        const [doctorResult, patientResult] = await Promise.all([
+          supabase.from('doctors').select('*').eq('id', chat.doctor_id).single(),
+          supabase.from('patients').select('*').eq('id', chat.patient_id).single()
+        ]);
+
+        return {
+          ...chat,
+          doctor: doctorResult.data,
+          patient: patientResult.data
+        };
       });
+
+      let chatsWithData = await Promise.all(chatPromises);
+
+      // If doctor has no chats yet, derive from chat_messages so incoming messages still show up
+      if (userType === 'doctor' && chatsWithData.length === 0) {
+        const { data: msgs } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .or(`receiver_id.eq.${user.id},sender_id.eq.${user.id})`)
+          .order('created_at', { ascending: false });
+
+        const patientIds = Array.from(new Set((msgs || [])
+          .map(m => (m.sender_id === user.id ? m.receiver_id : m.sender_id))));
+
+        const derivedPromises = patientIds.map(async (pid) => {
+          const [{ data: patient }, { data: lastMsg }] = await Promise.all([
+            supabase.from('patients').select('*').eq('id', pid).single(),
+            supabase.from('chat_messages')
+              .select('*')
+              .or(`and(sender_id.eq.${user.id},receiver_id.eq.${pid}),and(sender_id.eq.${pid},receiver_id.eq.${user.id})`)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single()
+          ]);
+
+          return {
+            id: `derived-${pid}`,
+            patient_id: pid,
+            doctor_id: user.id,
+            created_at: lastMsg?.created_at || new Date().toISOString(),
+            last_message_at: lastMsg?.created_at || null,
+            doctor: { id: user.id, name: '', email: '', degree: '', institution: '', experience_years: 0, specialization: '' } as any,
+            patient: patient as any,
+          } as Chat;
+        });
+
+        const derived = await Promise.all(derivedPromises);
+        chatsWithData = derived;
+      }
+
+      setChats(chatsWithData);
     } catch (error: any) {
-      console.error('Error fetching recipient info:', error);
+      console.error('Error fetching chats:', error);
     }
   };
 
-  const setupRealtimeSubscription = () => {
-    if (!chatId) return;
-
-    const channel = supabase
-      .channel(`chat-${chatId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `chat_id=eq.${chatId}`,
-        },
-        (payload) => {
-          const newMessage = payload.new as ChatMessage;
-          setMessages(prev => [...prev, newMessage]);
-          
-          // Show notification if message is from someone else
-          if (newMessage.sender_id !== user?.id) {
-            setUnreadCount(prev => prev + 1);
-          }
-        }
-      )
-      .on('presence', { event: 'sync' }, () => {
-        const newState = channel.presenceState();
-        const typingUserIds = new Set<string>();
-        
-        Object.values(newState).forEach((presences: any) => {
-          presences.forEach((presence: any) => {
-            if (presence.typing && presence.user_id !== user?.id) {
-              typingUserIds.add(presence.user_id);
-            }
-          });
-        });
-        
-        setTypingUsers(typingUserIds);
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  };
-
   const fetchMessages = async () => {
-    if (!chatId) return;
+    if (!selectedChat || !user?.id) return;
 
     try {
+      // Get the other participant's ID based on user type
+      const otherParticipantId = userType === 'patient' 
+        ? selectedChat.doctor_id 
+        : selectedChat.patient_id;
+
       const { data, error } = await supabase
         .from('chat_messages')
         .select('*')
-        .eq('chat_id', chatId)
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherParticipantId}),and(sender_id.eq.${otherParticipantId},receiver_id.eq.${user.id})`)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages((data as ChatMessage[]) || []);
-      
-      // Count unread messages
-      const unread = (data || []).filter(msg => 
-        msg.receiver_id === user?.id && !msg.read_at
-      ).length;
-      setUnreadCount(unread);
+      setMessages((data || []) as ChatMessage[]);
     } catch (error: any) {
       console.error('Error fetching messages:', error);
       toast({
@@ -237,57 +245,93 @@ const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({
     }
   };
 
-  const markMessagesAsRead = async () => {
-    if (!chatId || !user?.id) return;
+  const startChatWithDoctor = async (doctor: Doctor) => {
+    if (!user?.id) return;
 
     try {
-      await supabase
-        .from('chat_messages')
-        .update({ read_at: new Date().toISOString() })
-        .eq('chat_id', chatId)
-        .eq('receiver_id', user.id)
-        .is('read_at', null);
+      // Check if chat already exists
+      const existingChat = chats.find(chat => 
+        chat.doctor_id === doctor.id && chat.patient_id === user.id
+      );
 
-      setUnreadCount(0);
+      if (existingChat) {
+        setSelectedChat(existingChat);
+        return;
+      }
+
+      // Create new chat
+      const { data: chatData, error } = await supabase
+        .from('chats')
+        .insert({
+          patient_id: user.id,
+          doctor_id: doctor.id,
+        })
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      // Fetch doctor and patient data
+      const [doctorResult, patientResult] = await Promise.all([
+        supabase.from('doctors').select('*').eq('id', doctor.id).single(),
+        supabase.from('patients').select('*').eq('id', user.id).single()
+      ]);
+
+      const chatWithData = {
+        ...chatData,
+        doctor: doctorResult.data,
+        patient: patientResult.data
+      };
+
+      setSelectedChat(chatWithData);
+      setChats(prev => [chatWithData, ...prev]);
     } catch (error: any) {
-      console.error('Error marking messages as read:', error);
+      console.error('Error starting chat:', error);
+      toast({
+        title: t('error', language),
+        description: error.message,
+        variant: 'destructive',
+      });
     }
   };
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !chatId || !user?.id) return;
+    if (!newMessage.trim() || !selectedChat || !user?.id) return;
 
     setLoading(true);
 
     try {
+      const receiverId = userType === 'patient' ? selectedChat.doctor_id : selectedChat.patient_id;
+      const receiverType = userType === 'patient' ? 'doctor' : 'patient';
+
       const { error } = await supabase
         .from('chat_messages')
         .insert({
-          chat_id: chatId,
           sender_id: user.id,
-          receiver_id: recipientId!,
+          receiver_id: receiverId,
           message: newMessage.trim(),
           sender_type: userType,
-          receiver_type: recipientType || 'doctor',
+          receiver_type: receiverType,
+          chat_id: selectedChat.id,
         });
 
       if (error) throw error;
 
-      setNewMessage('');
-      
-      // Update chat's last_message_at
+      // Update last message time
       await supabase
         .from('chats')
         .update({ last_message_at: new Date().toISOString() })
-        .eq('id', chatId);
+        .eq('id', selectedChat.id);
 
-      // Create notification for recipient
+      setNewMessage('');
+      
+      // Create notification for receiver
       await supabase
         .from('notifications')
         .insert({
-          user_id: recipientId!,
-          user_type: recipientType || 'doctor',
+          user_id: receiverId,
+          user_type: receiverType,
           title: 'New Message',
           message: `You have a new message from ${user.email}`,
           type: 'message',
@@ -305,298 +349,199 @@ const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({
     }
   };
 
-  const handleTyping = (typing: boolean) => {
-    if (!chatId) return;
-
-    const channel = supabase.channel(`chat-${chatId}`);
-    channel.track({
-      user_id: user?.id,
-      typing,
-      timestamp: Date.now(),
-    });
-
-    if (typing) {
-      setIsTyping(true);
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-      typingTimeoutRef.current = setTimeout(() => {
-        setIsTyping(false);
-        channel.track({
-          user_id: user?.id,
-          typing: false,
-          timestamp: Date.now(),
-        });
-      }, 3000);
-    }
-  };
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !chatId) return;
-
-    // Check file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: 'File too large',
-        description: 'File size must be less than 10MB',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${chatId}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('chat-files')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-files')
-        .getPublicUrl(fileName);
-
-      // Send message with attachment
-      const { error: messageError } = await supabase
-        .from('chat_messages')
-        .insert({
-          chat_id: chatId,
-          sender_id: user?.id!,
-          receiver_id: recipientId!,
-          message: `Shared a file: ${file.name}`,
-          sender_type: userType,
-          receiver_type: recipientType || 'doctor',
-          attachment_url: publicUrl,
-          attachment_type: file.type,
-        });
-
-      if (messageError) throw messageError;
-
-      toast({
-        title: 'File uploaded',
-        description: 'File has been shared successfully',
-      });
-
-    } catch (error: any) {
-      console.error('Error uploading file:', error);
-      toast({
-        title: 'Upload failed',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
-  const downloadAttachment = async (url: string, filename: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      toast({
-        title: 'Download failed',
-        description: 'Failed to download the file',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  if (!recipientId) {
-    return (
-      <Card className="h-96 flex items-center justify-center">
-        <CardContent className="text-center">
-          <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">
-            {t('selectChatRecipient', language)}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const filteredDoctors = doctors.filter(doctor =>
+    doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader className="pb-3 border-b">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={recipientInfo?.profile_pic_url} />
-              <AvatarFallback>
-                {recipientName?.split(' ').map(n => n[0]).join('') || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <CardTitle className="text-lg">{recipientName}</CardTitle>
-              {recipientInfo?.specialization && (
-                <p className="text-sm text-muted-foreground">
-                  {recipientInfo.specialization} • {recipientInfo.experience_years} years
-                </p>
-              )}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+      {/* Doctor List / Chat List */}
+      <Card className="mandala-shadow">
+        <CardHeader>
+          <CardTitle className="sanskrit-title flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            {userType === 'patient' ? 'Available Doctors' : 'Patient Chats'}
+          </CardTitle>
+          {userType === 'patient' && (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search doctors..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-          </div>
-          {unreadCount > 0 && (
-            <Badge variant="destructive" className="ml-auto">
-              {unreadCount} unread
-            </Badge>
           )}
-        </div>
-      </CardHeader>
-
-      <CardContent className="flex-1 flex flex-col gap-4 p-4">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-3 pr-2">
-          {messages.map((message) => {
-            const isOwnMessage = message.sender_id === user?.id;
-            
-            return (
+        </CardHeader>
+        <CardContent className="space-y-2 max-h-[500px] overflow-y-auto">
+          {userType === 'patient' ? (
+            // Patient view - show doctors
+            filteredDoctors.map((doctor) => (
               <div
-                key={message.id}
-                className={`flex gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                key={doctor.id}
+                onClick={() => startChatWithDoctor(doctor)}
+                className={`p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-mystic ${
+                  selectedChat?.doctor_id === doctor.id ? 'bg-primary/10 border-primary' : ''
+                }`}
               >
-                {!isOwnMessage && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={recipientInfo?.profile_pic_url} />
-                    <AvatarFallback className="text-xs">
-                      {recipientName?.split(' ').map(n => n[0]).join('') || 'U'}
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {doctor.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
-                )}
-                
-                <div
-                  className={`max-w-[70%] p-3 rounded-lg ${
-                    isOwnMessage
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
-                  <p className="text-sm">{message.message}</p>
-                  
-                  {/* Attachment */}
-                  {message.attachment_url && (
-                    <div className="mt-2 p-2 bg-background/20 rounded flex items-center gap-2">
-                      {message.attachment_type?.startsWith('image/') ? (
-                        <Image className="h-4 w-4" />
-                      ) : (
-                        <FileText className="h-4 w-4" />
-                      )}
-                      <span className="text-xs flex-1">Attachment</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => downloadAttachment(
-                          message.attachment_url!,
-                          `attachment-${message.id}`
-                        )}
-                      >
-                        <Download className="h-3 w-3" />
-                      </Button>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium truncate">{doctor.name}</h4>
+                    <p className="text-sm text-muted-foreground truncate">{doctor.specialization}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="secondary" className="text-xs">
+                        {doctor.experience_years} years exp
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {doctor.degree}
+                      </Badge>
                     </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between mt-1">
-                    <p className={`text-xs ${
-                      isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                    }`}>
-                      {new Date(message.created_at).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                    {isOwnMessage && message.read_at && (
-                      <span className="text-xs text-primary-foreground/70">✓</span>
-                    )}
                   </div>
                 </div>
-                
-                {isOwnMessage && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="text-xs">
-                      {user?.email?.slice(0, 2).toUpperCase()}
+              </div>
+            ))
+          ) : (
+            // Doctor view - show patient chats
+            chats.map((chat) => (
+              <div
+                key={chat.id}
+                onClick={() => setSelectedChat(chat)}
+                className={`p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-mystic ${
+                  selectedChat?.id === chat.id ? 'bg-primary/10 border-primary' : ''
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-secondary text-secondary-foreground">
+                      {chat.patient?.name ? chat.patient.name.split(' ').map(n => n[0]).join('') : 'P'}
                     </AvatarFallback>
                   </Avatar>
-                )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium truncate">{chat.patient?.name || 'Patient'}</h4>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {chat.patient?.age ? `Age: ${chat.patient.age} • ` : ''}
+                      {chat.last_message_at 
+                        ? `Last message: ${new Date(chat.last_message_at).toLocaleDateString()}`
+                        : 'No messages yet'
+                      }
+                    </p>
+                  </div>
+                </div>
               </div>
-            );
-          })}
-          
-          {/* Typing indicator */}
-          {typingUsers.size > 0 && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce delay-100" />
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce delay-200" />
-              </div>
-              <span>{recipientName} is typing...</span>
-            </div>
+            ))
           )}
-          
-          <div ref={messagesEndRef} />
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Message Input */}
-        <form onSubmit={sendMessage} className="flex gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            onChange={handleFileUpload}
-            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-          />
-          
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={loading}
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
-          
-          <Input
-            value={newMessage}
-            onChange={(e) => {
-              setNewMessage(e.target.value);
-              if (e.target.value && !isTyping) {
-                handleTyping(true);
-              } else if (!e.target.value && isTyping) {
-                handleTyping(false);
-              }
-            }}
-            placeholder={t('typeMessage', language)}
-            disabled={loading}
-            className="flex-1"
-          />
-          
-          <Button type="submit" disabled={loading || !newMessage.trim()}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      {/* Chat Interface */}
+      <div className="lg:col-span-2">
+        <Card className="mandala-shadow h-full flex flex-col">
+          {selectedChat ? (
+            <>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5" />
+                  {userType === 'patient' ? `Dr. ${selectedChat.doctor.name}` : selectedChat.patient?.name || 'Patient'}
+                  <Badge variant="secondary" className="ml-auto">
+                    {userType === 'patient' ? selectedChat.doctor.specialization : `Age: ${selectedChat.patient?.age || 'N/A'}`}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent className="flex-1 flex flex-col gap-4 p-4">
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+                  {messages.map((message) => {
+                    const isOwnMessage = message.sender_id === user?.id;
+                    
+                    return (
+                      <div
+                        key={message.id}
+                        className={`flex gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                      >
+                        {!isOwnMessage && (
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="text-xs">
+                              {userType === 'patient' 
+                                ? selectedChat.doctor.name.split(' ').map(n => n[0]).join('')
+                                : selectedChat.patient?.name ? selectedChat.patient.name.split(' ').map(n => n[0]).join('') : 'P'
+                              }
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        
+                        <div
+                          className={`max-w-[70%] p-3 rounded-lg ${
+                            isOwnMessage
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted'
+                          }`}
+                        >
+                          <p className="text-sm">{message.message}</p>
+                          <p className={`text-xs mt-1 ${
+                            isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                          }`}>
+                            {new Date(message.created_at).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                        
+                        {isOwnMessage && (
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="text-xs">
+                              {user?.email?.slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Message Input */}
+                <form onSubmit={sendMessage} className="flex gap-2">
+                  <Input
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder={t('typeMessage', language)}
+                    disabled={loading}
+                    className="flex-1"
+                  />
+                  <Button type="submit" disabled={loading || !newMessage.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+              </CardContent>
+            </>
+          ) : (
+            <CardContent className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">
+                  {userType === 'patient' ? 'Select a Doctor to Chat' : 'Select a Patient Chat'}
+                </h3>
+                <p className="text-muted-foreground">
+                  {userType === 'patient' 
+                    ? 'Choose a doctor from the list to start a conversation'
+                    : 'Choose a patient chat to view messages'
+                  }
+                </p>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      </div>
+    </div>
   );
 };
 

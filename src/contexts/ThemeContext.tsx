@@ -49,6 +49,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('language', language);
+    // Reflect language on the <html> element for accessibility/SEO
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('lang', language === 'hi' ? 'hi' : 'en');
+      document.documentElement.setAttribute('dir', 'ltr');
+    }
   }, [language]);
 
   const toggleTheme = () => {

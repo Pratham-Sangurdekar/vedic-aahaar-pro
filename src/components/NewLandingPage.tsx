@@ -6,11 +6,19 @@ import { Sparkles, Calculator, MessageSquare, Users, Star, ArrowRight, FileText,
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import ayurvedicSpicesHero from '@/assets/ayurvedic-spices-hero.jpg';
+import calorieTracker from '@/assets/calorie_tracker.jpg';
+import utensil2 from '@/assets/utensil2.jpg';
+import gyan from '@/assets/gyan.jpg';
+import expert from '@/assets/expert.jpg';
+
+import tracker from '@/assets/tracker.jpg';
 import Navbar from './Navbar';
+import { useTheme } from '@/contexts/ThemeContext';
 import ConsultationModal from './ConsultationModal';
 
 const NewLandingPage = () => {
   const navigate = useNavigate();
+  const { language } = useTheme();
   const { user, userType } = useAuth();
   const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
   const [isVisible, setIsVisible] = useState<Record<string, boolean>>({});
@@ -77,6 +85,9 @@ const NewLandingPage = () => {
       {/* Navigation */}
       <Navbar />
 
+      {/* Divider below header */}
+      <div className="vedic-border" />
+
       {/* Hero Section - Aarambh */}
       <section 
         id="hero" 
@@ -93,16 +104,17 @@ const NewLandingPage = () => {
           <div className="absolute inset-0 bg-black/50" />
         </div>
         
-        {/* Vedic frieze divider */}
-        <div className="absolute top-20 left-0 right-0 vedic-border"></div>
+        {/* Removed inner divider; global divider placed under navbar */}
         
         
         <div className="relative z-10 container mx-auto px-4 text-center text-white">
           <h1 className="sanskrit-title text-6xl md:text-8xl font-bold mb-4 text-white drop-shadow-lg">
-            Ved-Aahaar
+            {language === 'en' ? 'Ved-Aahaar' : 'वेद-आहार'}
           </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-4xl mx-auto leading-relaxed">
-            वेद आहार - Ancient Ayurvedic wisdom meets modern technology for personalized nutrition and holistic wellness
+          <p className="text-xl md:text-l text-white/90 mb-8 max-w-l mx-auto leading-relaxed">
+            {language === 'en' 
+              ? 'वेद आहार - Ancient Ayurvedic wisdom meets modern technology for personalized nutrition and holistic wellness '
+              : 'प्राचीन आयुर्वेदिक ज्ञान और आधुनिक तकनीक का संगम—व्यक्तिगत पोषण और समग्र स्वास्थ्य के लिए'}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
@@ -111,7 +123,7 @@ const NewLandingPage = () => {
               className="px-8 py-4 text-lg mystic-glow transition-mystic"
               onClick={handleBookConsultation}
             >
-              Book Consultation
+              {language === 'en' ? 'Book Consultation' : 'परामर्श बुक करें'}
               <Heart className="ml-2 h-5 w-5" />
             </Button>
             <Button 
@@ -120,7 +132,7 @@ const NewLandingPage = () => {
               className="px-8 py-4 text-lg transition-mystic"
               onClick={handleGetStarted}
             >
-              Begin Your Journey
+              {language === 'en' ? 'Begin Your Journey' : 'अपनी यात्रा शुरू करें'}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
@@ -128,365 +140,221 @@ const NewLandingPage = () => {
 
       </section>
 
-      {/* Yojan - AI Diet Generator Section */}
+      {/* Yojan - AI Diet Generator Section (centered style to match Recipes/Gyan) */}
       <section 
         id="diet-generator" 
-        className={`min-h-screen w-full py-20 px-4 transition-all duration-1000 ${
+        className={`relative py-20 px-4 transition-all duration-1000 ${
           isVisible['diet-generator'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        } bg-background`}
+        }`}
       >
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Content Side */}
-            <div className="space-y-6">
-              <Badge variant="secondary" className="mb-4 px-4 py-2">
-                <Brain className="h-4 w-4 mr-2" />
-                Yojan - AI Powered
-              </Badge>
-              
-              <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
-                AI-Powered Diet Generator
-              </h2>
-              
-              <p className="text-xl text-muted-foreground mb-8">
-                Experience personalized Ayurvedic meal plans crafted by AI that understands your unique constitution, health goals, and dietary preferences. Get custom recipes with detailed ingredient benefits and step-by-step preparation guidance.
-              </p>
+        <div className="absolute inset-0">
+          <img src={calorieTracker} alt="Herbs and spices" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/85 to-white/0" />
+        </div>
+        <div className="relative container mx-auto max-w-7xl text-left">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full mb-8 text-white shadow-lg animate-pulse">
+            <Brain className="h-10 w-10" />
+          </div>
+          <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+            {language === 'en' ? 'AI-Powered Diet Generator' : 'एआई संचालित आहार जनरेटर'}
+          </h2>
+          <p className="text-xl text-muted-foreground mb-8 max-w-l mx-auto leading-relaxed">
+            {language === 'en' 
+              ? 'Personalized Ayurvedic meal plans crafted by AI that understands your constitution, goals, and preferences.'
+              : 'एआई द्वारा बनाए गए व्यक्तिगत आयुर्वेदिक आहार योजनाएँ जो आपकी प्रकृति, लक्ष्यों और पसंद को समझती हैं।'}
+          </p>
+          <ul className="list-disc pl-6 space-y-2 mb-12 max-w-3xl">
+            <li className="text-white/90">{language === 'en' ? 'Dosha-based planning' : 'दोष आधारित योजना'}</li>
+            <li className="text-white/90">{language === 'en' ? 'Custom recipes with benefits' : 'लाभों सहित कस्टम रेसिपी'}</li>
+            <li className="text-white/90">{language === 'en' ? 'Seasonal recommendations' : 'मौसमी अनुशंसाएँ'}</li>
+          </ul>
+         
 
-              <div className="space-y-4">
-                <div className="flex items-center text-lg">
-                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
-                  <span>Personalized dosha-based meal planning</span>
-                </div>
-                <div className="flex items-center text-lg">
-                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
-                  <span>Custom recipes with Ayurvedic benefits</span>
-                </div>
-                <div className="flex items-center text-lg">
-                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
-                  <span>Seasonal ingredient recommendations</span>
-                </div>
-              </div>
-
-              <Button 
-                size="lg" 
-                variant="cta"
-                className="mt-8 transition-mystic"
-                onClick={() => handleFeatureClick('diet-generator')}
-              >
-                Try Generator
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-
-            {/* Visual Side - Mock UI Screenshot */}
-            <div className="relative">
-              <Card className="mandala-shadow transition-all duration-500 hover:scale-105 border-border/50">
-                <CardContent className="p-8 text-center relative overflow-hidden">
-                  {/* Background gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-600/10" />
-                  
-                  <div className="relative z-10">
-                    <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mb-8 text-white shadow-lg">
-                      <Brain className="h-16 w-16" />
+          {/* Mini Chart Card (Dosha Bars) */}
+          <div className="mt-12 max-w-3xl mx-auto">
+            <Card className="mandala-shadow border-border/50">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Vata</span>
+                    <div className="w-56 h-2 bg-emerald-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-emerald-500 rounded-full" style={{width: '60%'}}></div>
                     </div>
-                    
-                    <h3 className="text-3xl font-semibold mb-4 sanskrit-title">
-                      Smart AI Analysis
-                    </h3>
-                    <p className="text-muted-foreground text-lg mb-6">
-                      Advanced algorithms analyze your constitution and generate personalized Ayurvedic meal plans
-                    </p>
-                    
-                    {/* Mock UI Elements */}
-                    <div className="bg-muted rounded-lg p-4 text-left space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Vata Balance:</span>
-                        <div className="w-24 h-2 bg-green-200 rounded-full">
-                          <div className="w-16 h-2 bg-green-500 rounded-full"></div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Pitta Balance:</span>
-                        <div className="w-24 h-2 bg-yellow-200 rounded-full">
-                          <div className="w-18 h-2 bg-yellow-500 rounded-full"></div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Kapha Balance:</span>
-                        <div className="w-24 h-2 bg-blue-200 rounded-full">
-                          <div className="w-12 h-2 bg-blue-500 rounded-full"></div>
-                        </div>
-                      </div>
-                    </div>
+                    <span className="text-xs text-muted-foreground">60%</span>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Pitta</span>
+                    <div className="w-56 h-2 bg-amber-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-amber-500 rounded-full" style={{width: '35%'}}></div>
+                    </div>
+                    <span className="text-xs text-muted-foreground">35%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Kapha</span>
+                    <div className="w-56 h-2 bg-cyan-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-cyan-500 rounded-full" style={{width: '45%'}}></div>
+                    </div>
+                    <span className="text-xs text-muted-foreground">45%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* Ankh - Calorie Tracker Section */}
+      {/* Ankh - Calorie Tracker Section (centered style) */}
       <section 
         id="calorie-tracker" 
-        className={`min-h-screen w-full py-20 px-4 transition-all duration-1000 ${
+        className={`relative py-20 px-4 transition-all duration-1000 ${
           isVisible['calorie-tracker'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        } bg-muted/20`}
+        }`}
       >
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Visual Side - Mock UI Screenshot */}
-            <div className="relative order-2 lg:order-1">
-              <Card className="mandala-shadow transition-all duration-500 hover:scale-105 border-border/50">
-                <CardContent className="p-8 text-center relative overflow-hidden">
-                  {/* Background gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-orange-500/10" />
-                  
-                  <div className="relative z-10">
-                    <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full mb-8 text-white shadow-lg">
-                      <Calculator className="h-16 w-16" />
+        <div className="absolute inset-0">
+          <img src={tracker} alt="Healthy ingredients" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-l from-black via-black/70 to-black/0" />
+        </div>
+        <div className="relative container mx-auto max-w-7xl text-right">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full mb-8 text-white shadow-lg animate-pulse">
+            <Calculator className="h-10 w-10" />
+          </div>
+          <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+            {language === 'en' ? 'Ayurvedic Calorie Tracker' : 'आयुर्वेदिक कैलोरी ट्रैकर'}
+          </h2>
+          <h3 className="text-xl text-muted-foreground mb-6 max-w-l text-right ">
+            {language === 'en' 
+              ? 'Track your daily nutrition with rasa and guna analysis. Maintain balance according to Ayurvedic wisdom.'
+              : 'रसा और गुण के विश्लेषण के साथ अपना दैनिक पोषण ट्रैक करें। आयुर्वेदिक सिद्धांतों के अनुसार संतुलन बनाए रखें।'}
+          </h3>
+          <ul className="list-disc pl-6 space-y-2 mb-12 max-w-3xl ml-right text-right">
+            <li className="text-white/90">{language === 'en' ? 'Six-taste balancing' : 'षड्रस संतुलन'}</li>
+            <li className="text-white/90">{language === 'en' ? 'Guna (qualities) analysis' : 'गुणों का विश्लेषण'}</li>
+            <li className="text-white/90">{language === 'en' ? 'Daily progress monitoring' : 'दैनिक प्रगति निगरानी'}</li>
+          </ul>
+          
+
+          {/* Mini Chart Card (Rasa Percentages) */}
+          <div className="mt-12 max-w-3xl mx-auto">
+            <Card className="mandala-shadow border-border/50">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                  {[
+                    { label: language === 'en' ? 'Sweet (Madhura)' : 'मधुर', value: '65%' },
+                    { label: language === 'en' ? 'Sour (Amla)' : 'आम्ल', value: '15%' },
+                    { label: language === 'en' ? 'Salty (Lavana)' : 'लवण', value: '10%' },
+                    { label: language === 'en' ? 'Pungent (Katu)' : 'कटु', value: '8%' },
+                    { label: language === 'en' ? 'Bitter (Tikta)' : 'तिक्त', value: '6%' },
+                    { label: language === 'en' ? 'Astringent (Kashaya)' : 'कषाय', value: '4%' },
+                  ].map((item, idx) => (
+                    <div key={idx} className="bg-white/60 dark:bg-gray-800/60 rounded-lg p-3 border border-amber-200/50 dark:border-amber-800/30">
+                      <div className="text-xs text-muted-foreground mb-2">{item.label}</div>
+                      <div className="w-full h-2 bg-amber-100 rounded-full overflow-hidden">
+                        <div className="h-2 bg-amber-500 rounded-full" style={{width: item.value}}></div>
+                      </div>
+                      <div className="text-right text-xs mt-1 text-muted-foreground">{item.value}</div>
                     </div>
-                    
-                    <h3 className="text-3xl font-semibold mb-4 sanskrit-title">
-                      Ayurvedic Tracking
-                    </h3>
-                    <p className="text-muted-foreground text-lg mb-6">
-                      Track calories with Rasa and Guna classification according to ancient nutritional wisdom
-                    </p>
-                    
-                    {/* Mock Daily Log */}
-                    <div className="bg-muted rounded-lg p-4 text-left space-y-3">
-                      <div className="text-sm font-medium text-center mb-2">Today's Intake</div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Sweet (Madhura):</span>
-                        <Badge variant="secondary">65%</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Sour (Amla):</span>
-                        <Badge variant="secondary">15%</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Salty (Lavana):</span>
-                        <Badge variant="secondary">10%</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Pungent (Katu):</span>
-                        <Badge variant="secondary">8%</Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Content Side */}
-            <div className="space-y-6 order-1 lg:order-2">
-              <Badge variant="secondary" className="mb-4 px-4 py-2">
-                <Calculator className="h-4 w-4 mr-2" />
-                Ankh - Ayurvedic Analytics
-              </Badge>
-              
-              <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
-                Ayurvedic Calorie Tracker
-              </h2>
-              
-              <p className="text-xl text-muted-foreground mb-8">
-                Track your daily nutrition with Ayurvedic principles, including rasa and guna analysis. Monitor macro and micronutrients while maintaining perfect balance according to ancient wisdom and your unique constitution.
-              </p>
-
-              <div className="space-y-4">
-                <div className="flex items-center text-lg">
-                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
-                  <span>Six-taste (Rasa) balance tracking</span>
+                  ))}
                 </div>
-                <div className="flex items-center text-lg">
-                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
-                  <span>Guna (qualities) analysis</span>
-                </div>
-                <div className="flex items-center text-lg">
-                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
-                  <span>Daily progress monitoring</span>
-                </div>
-              </div>
-
-              <Button 
-                size="lg" 
-                variant="cta"
-                className="mt-8 transition-mystic"
-                onClick={() => handleFeatureClick('calorie-tracker')}
-              >
-                Track Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* Sambandh - Doctor Connectivity Section */}
+      {/* Sambandh - Doctor Connectivity Section (centered style) */}
       <section 
         id="doctor-connectivity" 
-        className={`min-h-screen w-full py-20 px-4 transition-all duration-1000 ${
+        className={`relative py-20 px-4 transition-all duration-1000 ${
           isVisible['doctor-connectivity'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        } bg-background`}
+        }`}
       >
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Content Side */}
-            <div className="space-y-6">
-              <Badge variant="secondary" className="mb-4 px-4 py-2">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Sambandh - Doctor Network
-              </Badge>
-              
-              <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
-                Expert Connectivity & Real-Time Chat
-              </h2>
-              
-              <p className="text-xl text-muted-foreground mb-8">
-                Connect with certified Ayurvedic practitioners for personalized guidance, consultations, and real-time chat support. Share files, receive custom diet charts, and get expert advice whenever you need it.
-              </p>
+        <div className="absolute inset-0">
+          <img src={expert} alt="Consultation" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/0" />
+        </div>
+        <div className="relative container mx-auto max-w-7xl text-left">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-8 text-white shadow-lg animate-pulse">
+            <MessageSquare className="h-10 w-10" />
+          </div>
+          <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+            {language === 'en' ? 'Expert Connectivity & Real-Time Chat' : 'विशेषज्ञ कनेक्टिविटी और रीयल-टाइम चैट'}
+          </h2>
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-left leading-relaxed">
+            {language === 'en' 
+              ? 'Connect with certified Ayurvedic practitioners for consultations, share files, and get expert advice.'
+              : 'प्रमाणित आयुर्वेदिक विशेषज्ञों से परामर्श करें, फ़ाइलें साझा करें और विशेषज्ञ सलाह प्राप्त करें।'}
+          </p>
+          <ul className="list-disc pl-6 space-y-2 mb-12 max-w-3xl">
+            <li className="text-white/90">{language === 'en' ? 'Real-time doctor chat' : 'रीयल-टाइम डॉक्टर चैट'}</li>
+            <li className="text-white/90">{language === 'en' ? 'File/PDF sharing' : 'फ़ाइल/पीडीएफ साझा करना'}</li>
+            <li className="text-white/90">{language === 'en' ? 'Consultation scheduling' : 'परामर्श शेड्यूलिंग'}</li>
+          </ul>
+          
 
-              <div className="space-y-4">
-                <div className="flex items-center text-lg">
-                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
-                  <span>Real-time chat with certified doctors</span>
-                </div>
-                <div className="flex items-center text-lg">
-                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
-                  <span>File sharing and PDF attachments</span>
-                </div>
-                <div className="flex items-center text-lg">
-                  <Sparkles className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
-                  <span>Personalized consultation scheduling</span>
-                </div>
-              </div>
-
-              <Button 
-                size="lg" 
-                variant="cta"
-                className="mt-8 transition-mystic"
-                onClick={() => handleFeatureClick('doctor-connectivity')}
-              >
-                Find a Doctor
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-
-            {/* Visual Side - Doctor Profiles */}
-            <div className="relative">
-              <Card className="mandala-shadow transition-all duration-500 hover:scale-105 border-border/50">
-                <CardContent className="p-8 relative overflow-hidden">
-                  {/* Background gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-600/10" />
-                  
-                  <div className="relative z-10">
-                    <div className="text-center mb-6">
-                      <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4 text-white shadow-lg">
-                        <MessageSquare className="h-16 w-16" />
-                      </div>
-                      <h3 className="text-3xl font-semibold sanskrit-title">
-                        Expert Network
-                      </h3>
-                    </div>
-                    
-                    {/* Mock Doctor Cards */}
-                    <div className="space-y-4">
-                      <div className="bg-muted/50 rounded-lg p-4 flex items-center gap-3">
-                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold">
-                          DS
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium">Dr. Sunita Sharma</div>
-                          <div className="text-sm text-muted-foreground">Digestive Health Expert</div>
-                        </div>
-                        <Badge variant="secondary">Online</Badge>
-                      </div>
-                      
-                      <div className="bg-muted/50 rounded-lg p-4 flex items-center gap-3">
-                        <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center text-white font-bold">
-                          RK
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium">Dr. Rajesh Kumar</div>
-                          <div className="text-sm text-muted-foreground">Metabolic Specialist</div>
-                        </div>
-                        <Badge variant="outline">Available</Badge>
+          {/* Mini Chart Card (Doctor Availability) */}
+          <div className="mt-12 max-w-3xl mx-auto">
+            <Card className="mandala-shadow border-border/50">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">DS</div>
+                      <div>
+                        <div className="text-sm font-medium">Dr. Sunita Sharma</div>
+                        <div className="text-xs text-muted-foreground">{language === 'en' ? 'Digestive Health' : 'पाचन स्वास्थ्य'}</div>
                       </div>
                     </div>
+                    <Badge variant="secondary">{language === 'en' ? 'Online' : 'ऑनलाइन'}</Badge>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-xs">RK</div>
+                      <div>
+                        <div className="text-sm font-medium">Dr. Rajesh Kumar</div>
+                        <div className="text-xs text-muted-foreground">{language === 'en' ? 'Metabolic Specialist' : 'मेटाबॉलिक विशेषज्ञ'}</div>
+                      </div>
+                    </div>
+                    <Badge variant="outline">{language === 'en' ? 'Available' : 'उपलब्ध'}</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <br />
+            <Button 
+            size="lg" 
+            variant="cta"
+            onClick={() => handleFeatureClick('doctor-connectivity')}
+            className="px-8 py-4 text-lg transition-mystic shadow-lg hover:shadow-xl"
+          >
+            {language === 'en' ? 'Find a Doctor' : 'डॉक्टर खोजें'}
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
           </div>
         </div>
       </section>
 
-      {/* Real-Time Chat Feature Section */}
-      <section 
-        id="chat-feature" 
-        className={`w-full py-20 px-4 transition-all duration-1000 ${
-          isVisible['chat-feature'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        } bg-muted/20`}
-      >
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
-              Instant Consults & File Exchange
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Experience seamless communication with your Ayurvedic practitioners through our advanced real-time chat system with file sharing capabilities.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="mandala-shadow transition-all duration-500 hover:scale-105">
-              <CardContent className="p-6 text-center">
-                <MessageSquare className="h-16 w-16 text-primary mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Instant Messaging</h3>
-                <p className="text-muted-foreground">Real-time chat with typing indicators and read receipts</p>
-              </CardContent>
-            </Card>
-
-            <Card className="mandala-shadow transition-all duration-500 hover:scale-105">
-              <CardContent className="p-6 text-center">
-                <FileText className="h-16 w-16 text-primary mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">PDF Exchange</h3>
-                <p className="text-muted-foreground">Share diet charts, prescriptions, and medical documents</p>
-              </CardContent>
-            </Card>
-
-            <Card className="mandala-shadow transition-all duration-500 hover:scale-105">
-              <CardContent className="p-6 text-center">
-                <Heart className="h-16 w-16 text-primary mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Follow-up Care</h3>
-                <p className="text-muted-foreground">Appointment scheduling and continuous health monitoring</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
+      
       {/* Recipes Section - Horizontal */}
       <section 
         id="recipes-section" 
-        className="py-20 px-4 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/20 dark:via-orange-950/20 dark:to-red-950/20"
+        className="relative py-20 px-4"
       >
-        <div className="container mx-auto max-w-7xl text-center">
+        <div className="absolute inset-0">
+          <img src={utensil2} alt="Recipe spread" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-l from-black via-black/80 to-black/0" />
+        </div>
+        <div className="relative container mx-auto max-w-7xl text-right">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full mb-8 text-white shadow-lg animate-pulse">
             <ChefHat className="h-10 w-10" />
           </div>
           
-          <Badge variant="secondary" className="mb-4 px-4 py-2 bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
-            <ChefHat className="h-4 w-4 mr-2" />
-            Traditional Recipes Collection
-          </Badge>
+          
           
           <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
             Ayurvedic Recipes
           </h2>
           
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted-foreground mb-8 max-w-3l text-right">
             Discover time-honored recipes crafted to balance your doshas and nourish your body. Each recipe includes detailed ingredient benefits, preparation methods, and seasonal recommendations from certified Ayurvedic practitioners.
           </p>
           
@@ -523,38 +391,31 @@ const NewLandingPage = () => {
             ))}
           </div>
           
-          <Button 
-            size="lg" 
-            variant="cta"
-            onClick={() => handleFeatureClick('recipes')}
-            className="px-8 py-4 text-lg transition-mystic shadow-lg hover:shadow-xl"
-          >
-            Explore All Recipes
-            <ChefHat className="ml-2 h-5 w-5" />
-          </Button>
+          
         </div>
       </section>
 
       {/* Gyan Section - Horizontal */}
       <section 
         id="gyan-section" 
-        className="py-20 px-4 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/20 dark:via-teal-950/20 dark:to-cyan-950/20"
+        className="relative py-20 px-4"
       >
-        <div className="container mx-auto max-w-7xl text-center">
+        <div className="absolute inset-0">
+          <img src={gyan} alt="Scrolls and learning" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/0" />
+        </div>
+        <div className="relative container mx-auto max-w-7xl text-left">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full mb-8 text-white shadow-lg animate-pulse">
             <BookOpen className="h-10 w-10" />
           </div>
           
-          <Badge variant="secondary" className="mb-4 px-4 py-2 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-            <BookOpen className="h-4 w-4 mr-2" />
-            Ancient Wisdom Knowledge Center
-          </Badge>
+         
           
           <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
             Ayurvedic Gyan
           </h2>
           
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl leading-relaxed">
             Dive deep into the fundamentals of Ayurveda through interactive learning modules. Master the principles of constitutional analysis, seasonal eating, rasa balance, and the timeless science of holistic healing.
           </p>
           
@@ -594,15 +455,52 @@ const NewLandingPage = () => {
             ))}
           </div>
           
-          <Button 
-            size="lg" 
-            variant="cta"
-            onClick={() => handleFeatureClick('gyan')}
-            className="px-8 py-4 text-lg transition-mystic shadow-lg hover:shadow-xl"
-          >
-            Begin Learning Journey
-            <BookOpen className="ml-2 h-5 w-5" />
-          </Button>
+         
+        </div>
+      </section>
+{/* Real-Time Chat Feature Section */}
+<section 
+        id="chat-feature" 
+        className={`w-full py-20 px-4 transition-all duration-1000 ${
+          isVisible['chat-feature'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        } bg-muted/20`}
+      >
+         
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-6xl font-bold sanskrit-title gradient-text mb-6">
+              Instant Consults & File Exchange
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Experience seamless communication with your Ayurvedic practitioners through our advanced real-time chat system with file sharing capabilities.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="mandala-shadow transition-all duration-500 hover:scale-105">
+              <CardContent className="p-6 text-center">
+                <MessageSquare className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Instant Messaging</h3>
+                <p className="text-muted-foreground">Real-time chat with typing indicators and read receipts</p>
+              </CardContent>
+            </Card>
+
+            <Card className="mandala-shadow transition-all duration-500 hover:scale-105">
+              <CardContent className="p-6 text-center">
+                <FileText className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">PDF Exchange</h3>
+                <p className="text-muted-foreground">Share diet charts, prescriptions, and medical documents</p>
+              </CardContent>
+            </Card>
+
+            <Card className="mandala-shadow transition-all duration-500 hover:scale-105">
+              <CardContent className="p-6 text-center">
+                <Heart className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Follow-up Care</h3>
+                <p className="text-muted-foreground">Appointment scheduling and continuous health monitoring</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
@@ -690,7 +588,7 @@ const NewLandingPage = () => {
           
           <div className="border-t border-border mt-12 pt-8 text-center">
             <p className="text-muted-foreground text-sm">
-              © 2024 Ved-Aahaar. All rights reserved. Made with ❤️ for holistic wellness.
+              © 2025 Ved-Aahaar. All rights reserved. Made by CodeBlooders for holistic wellness.
             </p>
           </div>
         </div>

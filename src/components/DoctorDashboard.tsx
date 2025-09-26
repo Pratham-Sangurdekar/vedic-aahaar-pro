@@ -28,6 +28,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ThemeToggle from "./ThemeToggle";
 import Logo from "./Logo";
+import EnhancedChatInterface from "./EnhancedChatInterface";
+import ProfileSection from "./ProfileSection";
+import DashboardStats from "./DashboardStats";
 
 interface Doctor {
   id: string;
@@ -198,40 +201,6 @@ const DoctorDashboard = () => {
     }
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    
-    const updates = {
-      name: formData.get('name') as string,
-      degree: formData.get('degree') as string,
-      institution: formData.get('institution') as string,
-      experience_years: parseInt(formData.get('experience_years') as string),
-      specialization: formData.get('specialization') as string,
-      certifications: formData.get('certifications') as string,
-    };
-
-    try {
-      const { error } = await supabase
-        .from('doctors')
-        .update(updates)
-        .eq('id', user?.id);
-
-      if (error) throw error;
-
-      setDoctor(prev => prev ? { ...prev, ...updates } : null);
-      toast({
-        title: "Success",
-        description: "Profile updated successfully!",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
 
   if (loading) {
     return (
@@ -284,6 +253,13 @@ const DoctorDashboard = () => {
               Education
             </Button>
             <Button 
+              variant={activeTab === "messages" ? "default" : "ghost"}
+              onClick={() => setActiveTab("messages")}
+              className="sanskrit-title transition-mystic"
+            >
+              Messages
+            </Button>
+            <Button 
               variant={activeTab === "profile" ? "default" : "ghost"}
               onClick={() => setActiveTab("profile")}
               className="sanskrit-title transition-mystic"
@@ -316,40 +292,8 @@ const DoctorDashboard = () => {
               </p>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="mandala-shadow transition-mystic hover:scale-105">
-                <CardContent className="p-6 text-center">
-                  <Users className="h-8 w-8 text-primary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Active Patients</h3>
-                  <p className="text-2xl font-bold text-primary">42</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="mandala-shadow transition-mystic hover:scale-105">
-                <CardContent className="p-6 text-center">
-                  <ChefHat className="h-8 w-8 text-secondary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Recipes Shared</h3>
-                  <p className="text-2xl font-bold text-secondary">{recipes.length}</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="mandala-shadow transition-mystic hover:scale-105">
-                <CardContent className="p-6 text-center">
-                  <MessageCircle className="h-8 w-8 text-primary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Posts This Month</h3>
-                  <p className="text-2xl font-bold text-primary">{doctorPosts.length}</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="mandala-shadow transition-mystic hover:scale-105">
-                <CardContent className="p-6 text-center">
-                  <Heart className="h-8 w-8 text-secondary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Years Experience</h3>
-                  <p className="text-2xl font-bold text-secondary">{doctor?.experience_years}</p>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Real-time Stats */}
+            <DashboardStats userType="doctor" />
 
             {/* Create Post Section */}
             <Card className="mandala-shadow">
@@ -553,6 +497,20 @@ const DoctorDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Messages */}
+          <TabsContent value="messages" className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-4xl font-bold sanskrit-title gradient-text mb-4">
+                Patient Messages
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Communicate with your patients and provide guidance
+              </p>
+            </div>
+
+            <EnhancedChatInterface />
+          </TabsContent>
+
           {/* Profile */}
           <TabsContent value="profile" className="space-y-8">
             <div className="text-center">
@@ -564,94 +522,7 @@ const DoctorDashboard = () => {
               </p>
             </div>
 
-            <Card className="mandala-shadow max-w-2xl mx-auto">
-              <CardHeader>
-                <CardTitle className="sanskrit-title">Professional Information</CardTitle>
-                <CardDescription>
-                  Update your qualifications and practice details
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleUpdateProfile} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input 
-                      id="name" 
-                      name="name" 
-                      defaultValue={doctor?.name} 
-                      required 
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="degree">Degree(s)</Label>
-                    <Input 
-                      id="degree" 
-                      name="degree" 
-                      defaultValue={doctor?.degree} 
-                      required 
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="institution">Institution</Label>
-                    <Input 
-                      id="institution" 
-                      name="institution" 
-                      defaultValue={doctor?.institution} 
-                      required 
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="experience_years">Years of Experience</Label>
-                      <Input 
-                        id="experience_years" 
-                        name="experience_years" 
-                        type="number" 
-                        defaultValue={doctor?.experience_years} 
-                        min="0" 
-                        required 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="specialization">Specialization</Label>
-                      <Select name="specialization" defaultValue={doctor?.specialization}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="panchakarma">Panchakarma</SelectItem>
-                          <SelectItem value="nutrition">Ayurvedic Nutrition</SelectItem>
-                          <SelectItem value="metabolism">Metabolic Disorders</SelectItem>
-                          <SelectItem value="womens-health">Women's Health</SelectItem>
-                          <SelectItem value="digestive">Digestive Health</SelectItem>
-                          <SelectItem value="mental-health">Mental Wellness</SelectItem>
-                          <SelectItem value="general">General Practice</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="certifications">Certifications</Label>
-                    <Textarea 
-                      id="certifications" 
-                      name="certifications" 
-                      defaultValue={doctor?.certifications || ''} 
-                      placeholder="Additional certifications and qualifications"
-                      rows={3}
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full mystic-glow transition-mystic">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Update Profile
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            <ProfileSection userType="doctor" />
           </TabsContent>
         </Tabs>
       </div>

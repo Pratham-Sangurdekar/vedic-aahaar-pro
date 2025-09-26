@@ -32,12 +32,15 @@ import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "@/contexts/ThemeContext";
 import { t } from "@/utils/translations";
 import { generateDietPDF } from "@/utils/pdfGenerator";
-import ChatInterface from "./ChatInterface";
+import EnhancedChatInterface from "./EnhancedChatInterface";
 import NotificationSystem from "./NotificationSystem";
 import FoodLoggingComponent from "./FoodLoggingComponent";
 import RecipesPage from "./RecipesPage";
+import SafeBoundary from "./SafeBoundary";
 import GyanModule from "./GyanModule";
 import Logo from "./Logo";
+import ProfileSection from "./ProfileSection";
+import DashboardStats from "./DashboardStats";
 
 interface Patient {
   id: string;
@@ -230,41 +233,6 @@ const PatientDashboard = () => {
     }
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    
-    const updates = {
-      name: formData.get('name') as string,
-      age: parseInt(formData.get('age') as string),
-      height: parseFloat(formData.get('height') as string) || null,
-      weight: parseFloat(formData.get('weight') as string) || null,
-      medical_history: formData.get('medical_history') as string,
-      food_preferences: formData.get('food_preferences') as string,
-      food_restrictions: formData.get('food_restrictions') as string,
-    };
-
-    try {
-      const { error } = await supabase
-        .from('patients')
-        .update(updates)
-        .eq('id', user?.id);
-
-      if (error) throw error;
-
-      setPatient(prev => prev ? { ...prev, ...updates } : null);
-      toast({
-        title: "Success",
-        description: "Profile updated successfully!",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
 
   if (loading) {
     return (
@@ -364,40 +332,8 @@ const PatientDashboard = () => {
               </p>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="mandala-shadow transition-mystic hover:scale-105">
-                <CardContent className="p-6 text-center">
-                  <Calendar className="h-8 w-8 text-primary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Days Active</h3>
-                  <p className="text-2xl font-bold text-primary">21</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="mandala-shadow transition-mystic hover:scale-105">
-                <CardContent className="p-6 text-center">
-                  <TrendingUp className="h-8 w-8 text-secondary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Wellness Score</h3>
-                  <p className="text-2xl font-bold text-secondary">87%</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="mandala-shadow transition-mystic hover:scale-105">
-                <CardContent className="p-6 text-center">
-                  <Heart className="h-8 w-8 text-primary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Dosha Balance</h3>
-                  <p className="text-2xl font-bold text-primary">Vata</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="mandala-shadow transition-mystic hover:scale-105">
-                <CardContent className="p-6 text-center">
-                  <Brain className="h-8 w-8 text-secondary mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2">Available Recipes</h3>
-                  <p className="text-2xl font-bold text-secondary">{recipes.length}</p>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Real-time Stats */}
+            <DashboardStats userType="patient" />
 
             {/* Recipes Feed */}
             <div className="space-y-6">
@@ -681,7 +617,9 @@ const PatientDashboard = () => {
               </p>
             </div>
 
-            <RecipesPage />
+            <SafeBoundary>
+              <RecipesPage />
+            </SafeBoundary>
           </TabsContent>
 
           {/* Education */}
@@ -709,41 +647,7 @@ const PatientDashboard = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Doctor List */}
-              <Card className="mandala-shadow">
-                <CardHeader>
-                  <CardTitle className="sanskrit-title">Available Doctors</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    { id: '1', name: 'Dr. Priya Sharma', specialization: 'Panchakarma' },
-                    { id: '2', name: 'Dr. Rajesh Kumar', specialization: 'Nutrition' },
-                    { id: '3', name: 'Dr. Meera Patel', specialization: 'Women\'s Health' }
-                  ].map((doctor) => (
-                    <div key={doctor.id} className="p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-mystic">
-                      <h4 className="font-medium">{doctor.name}</h4>
-                      <p className="text-sm text-muted-foreground">{doctor.specialization}</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              {/* Chat Interface */}
-              <div className="lg:col-span-2">
-                <Card className="mandala-shadow">
-                  <CardContent className="p-6">
-                    <div className="text-center py-12">
-                      <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Select a Doctor to Chat</h3>
-                      <p className="text-muted-foreground">
-                        Choose a doctor from the list to start a conversation
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <EnhancedChatInterface />
           </TabsContent>
 
           {/* Profile */}
@@ -757,89 +661,7 @@ const PatientDashboard = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <Card className="mandala-shadow">
-                <CardHeader>
-                  <CardTitle className="sanskrit-title flex items-center">
-                    <User className="h-5 w-5 mr-2" />
-                    Profile Picture
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-center space-y-4">
-                  <Avatar className="w-24 h-24 mx-auto">
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-2xl">
-                      AK
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button variant="outline" size="sm">
-                    Change Photo
-                  </Button>
-                </CardContent>
-              </Card>
-              
-              <div className="lg:col-span-2">
-                <Card className="mandala-shadow">
-                  <CardHeader>
-                    <CardTitle className="sanskrit-title">Personal Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input id="name" value="Arjun Kumar" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" value="arjun.kumar@email.com" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="age">Age</Label>
-                        <Input id="age" value="28" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="height">Height (cm)</Label>
-                        <Input id="height" value="175" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="weight">Weight (kg)</Label>
-                        <Input id="weight" value="72" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="dosha">Primary Dosha</Label>
-                        <select className="w-full p-2 border border-border rounded-md bg-background">
-                          <option selected>Vata</option>
-                          <option>Pitta</option>
-                          <option>Kapha</option>
-                        </select>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="medical-history">Medical History</Label>
-                      <Textarea 
-                        id="medical-history" 
-                        placeholder="Any health conditions, allergies, or ongoing treatments..."
-                        value="Mild hypertension, managed with lifestyle changes. No known allergies."
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="dietary-prefs">Dietary Preferences</Label>
-                      <Textarea 
-                        id="dietary-prefs" 
-                        placeholder="Food preferences, restrictions, etc..."
-                        value="Vegetarian, prefer warm foods, avoid dairy after 6 PM"
-                      />
-                    </div>
-                    
-                  <Button type="submit" className="w-full mystic-glow transition-mystic" size="lg">
-                    <Settings className="h-5 w-5 mr-2" />
-                    Update Profile
-                  </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <ProfileSection userType="patient" />
           </TabsContent>
         </Tabs>
       </div>

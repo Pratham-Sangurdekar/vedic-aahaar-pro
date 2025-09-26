@@ -7,52 +7,58 @@ interface LogoProps {
 }
 
 const Logo: React.FC<LogoProps> = ({ className = "", variant = 'light', onClick }) => {
+  const colors = variant === 'light' 
+    ? { primary: '#22c55e', secondary: '#84cc16', accent: '#064e3b' }
+    : { primary: '#16a34a', secondary: '#65a30d', accent: '#052e2b' };
+
   return (
-    <div className={`flex items-center gap-3 ${className}`} onClick={onClick}>
-      {/* Simple Line Pestle and Mortar SVG Icon */}
-      <svg 
-        width="40" 
-        height="40" 
-        viewBox="0 0 40 40" 
-        fill="none" 
+    <div className={`flex items-center gap-3 cursor-pointer ${className}`} onClick={onClick}>
+      {/* Simplified continuous pestle & mortar with leaf */}
+      <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0 text-current"
+        viewBox="0 0 64 64"
+        width="40"
+        height="40"
+        fill="none"
+        className="shrink-0"
       >
-        {/* Mortar Bowl - simple line version */}
-        <path 
-          d="M8 18C8 16 9 14 11 13H29C31 14 32 16 32 18V28C32 32 28 36 24 36H16C12 36 8 32 8 28V18Z" 
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
+        {/* Continuous bowl silhouette */}
+        <path
+          d="M8 28c0 0 0 0 0 0h48c0 0 0 0 0 0v4c0 10.5-11.2 19-24 19S8 42.5 8 32v-4z"
+          fill={colors.primary}
         />
-        
-        {/* Pestle - simple line version */}
-        <path 
-          d="M25 8L30 4C31 3 32 3 33 4C34 5 34 6 33 7L29 11L27 13L22 15.5" 
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
+        {/* Bowl rim (single continuous stroke) */}
+        <path
+          d="M8 28c6 0 50 0 48 0"
+          stroke={colors.accent}
+          strokeWidth="2.5"
           strokeLinecap="round"
-          strokeLinejoin="round"
         />
-        
-        {/* Mortar Content - simple dots */}
-        <circle cx="16" cy="22" r="1" fill="currentColor" opacity="0.6" />
-        <circle cx="22" cy="25" r="1" fill="currentColor" opacity="0.4" />
-        <circle cx="18" cy="26" r="0.5" fill="currentColor" opacity="0.8" />
+        {/* Base */}
+        <rect x="24" y="51" width="16" height="5" rx="2.5" fill={colors.accent} />
+        {/* Pestle (simple continuous shape) */}
+        <path
+          d="M46 10c2 0 4 2 4 4 0 1-.4 1.9-1.1 2.6L36 29l-6-6 12.6-12.9c.7-.7 1.6-1.1 2.4-1.1z"
+          fill={colors.secondary}
+        />
+        {/* Leaf */}
+        <path
+          d="M20 22c6-4 12-2 14 2-6 4-12 2-14-2z"
+          fill={colors.secondary}
+        />
+        <path
+          d="M20 22c6-4 12-2 14 2"
+          stroke={colors.accent}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
       </svg>
 
       {/* Brand Text */}
       <div className="flex flex-col">
-        <h1 className={`sanskrit-title text-2xl font-bold leading-tight ${
-          variant === 'light' ? 'text-white' : 'gradient-text'
-        }`}>
-          Ved-Aahaar
-        </h1>
-        <p className={`text-xs font-medium tracking-wide ${
-          variant === 'light' ? 'text-white/70' : 'text-muted-foreground'
-        }`}>
-          आयुर्वेदिक आहार
+        <h1 className="sanskrit-title text-2xl font-bold gradient-text leading-tight">Ved-Aahaar</h1>
+        <p className="text-xs text-muted-foreground font-medium tracking-wide">
+          Ayurvedic Nutrition
         </p>
       </div>
     </div>

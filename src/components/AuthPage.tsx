@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Leaf, ArrowLeft, Loader2 } from "lucide-react";
+import Logo from './Logo';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -144,8 +145,7 @@ const AuthPage = () => {
           </Button>
           
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <Leaf className="h-6 sm:h-8 w-6 sm:w-8 text-primary" />
-            <h1 className="text-2xl sm:text-3xl font-bold sanskrit-title gradient-text">Ved-Aahaar</h1>
+            <Logo  />
           </div>
           <p className="text-sm sm:text-base text-muted-foreground">
             {isLogin ? "Welcome back to your wellness journey" : "Begin your Ayurvedic wellness journey"}
