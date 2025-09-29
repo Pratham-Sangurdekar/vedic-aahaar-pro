@@ -196,6 +196,16 @@ export type Database = {
           created_at: string
           custom_food_calories: number | null
           custom_food_name: string | null
+          custom_food_carbs: number | null
+          custom_food_protein: number | null
+          custom_food_fats: number | null
+          custom_food_fibre: number | null
+          custom_food_sugar: number | null
+          custom_food_sodium: number | null
+          custom_food_calcium: number | null
+          custom_food_iron: number | null
+          custom_food_vitamin_c: number | null
+          custom_food_folate: number | null
           date: string
           id: string
           patient_id: string
@@ -208,6 +218,16 @@ export type Database = {
           created_at?: string
           custom_food_calories?: number | null
           custom_food_name?: string | null
+          custom_food_carbs?: number | null
+          custom_food_protein?: number | null
+          custom_food_fats?: number | null
+          custom_food_fibre?: number | null
+          custom_food_sugar?: number | null
+          custom_food_sodium?: number | null
+          custom_food_calcium?: number | null
+          custom_food_iron?: number | null
+          custom_food_vitamin_c?: number | null
+          custom_food_folate?: number | null
           date: string
           id?: string
           patient_id: string
@@ -220,6 +240,16 @@ export type Database = {
           created_at?: string
           custom_food_calories?: number | null
           custom_food_name?: string | null
+          custom_food_carbs?: number | null
+          custom_food_protein?: number | null
+          custom_food_fats?: number | null
+          custom_food_fibre?: number | null
+          custom_food_sugar?: number | null
+          custom_food_sodium?: number | null
+          custom_food_calcium?: number | null
+          custom_food_iron?: number | null
+          custom_food_vitamin_c?: number | null
+          custom_food_folate?: number | null
           date?: string
           id?: string
           patient_id?: string
@@ -335,6 +365,71 @@ export type Database = {
           user_type?: string
         }
         Relationships: []
+      }
+      patient_post_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          patient_id: string | null
+          post_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          patient_id?: string | null
+          post_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          patient_id?: string | null
+          post_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_post_likes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "patient_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_posts: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          patient_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          patient_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          patient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_posts_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patients: {
         Row: {

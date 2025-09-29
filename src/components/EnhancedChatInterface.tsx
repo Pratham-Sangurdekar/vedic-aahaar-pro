@@ -139,91 +139,105 @@ const EnhancedChatInterface: React.FC = () => {
 
   const fetchChats = async () => {
     if (!user?.id) return;
-
     try {
-      // For patients, show chats where they are the patient
-      // For doctors, show chats where they are the doctor
-      const filter = userType === 'patient' 
-        ? `patient_id.eq.${user.id}` 
-        : `doctor_id.eq.${user.id}`;
-
-      console.log('Fetching chats for user:', user.id, 'userType:', userType, 'filter:', filter);
-
+      // For both patients and doctors, show chats where they are a participant
       const { data: chatsData, error: chatsError } = await supabase
         .from('chats')
         .select('*')
-        .eq(userType === 'patient' ? 'patient_id' : 'doctor_id', user.id)
+        .or(`patient_id.eq.${user.id},doctor_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false });
 
       if (chatsError) throw chatsError;
-      
-      console.log('Raw chats data:', chatsData);
-
       // Fetch doctor and patient data separately
       const chatPromises = (chatsData || []).map(async (chat) => {
         const [doctorResult, patientResult] = await Promise.all([
           supabase.from('doctors').select('*').eq('id', chat.doctor_id).single(),
           supabase.from('patients').select('*').eq('id', chat.patient_id).single()
         ]);
-
         return {
           ...chat,
           doctor: doctorResult.data,
           patient: patientResult.data
         };
       });
-
       let chatsWithData = await Promise.all(chatPromises);
 
-      // If doctor has no chats yet, derive from chat_messages so incoming messages still show up
-      if (userType === 'doctor' && chatsWithData.length === 0) {
+      // If user has no chats yet, derive from chat_messages so incoming messages still show up
+      if (chatsWithData.length === 0) {
         const { data: msgs } = await supabase
           .from('chat_messages')
           .select('*')
-          .or(`receiver_id.eq.${user.id},sender_id.eq.${user.id})`)
+          .or(`receiver_id.eq.${user.id},sender_id.eq.${user.id}`)
           .order('created_at', { ascending: false });
 
-        const patientIds = Array.from(new Set((msgs || [])
+        // Find the other participant ids
+        const otherIds = Array.from(new Set((msgs || [])
           .map(m => (m.sender_id === user.id ? m.receiver_id : m.sender_id))));
 
-        const derivedPromises = patientIds.map(async (pid) => {
-          const [{ data: patient }, { data: lastMsg }] = await Promise.all([
-            supabase.from('patients').select('*').eq('id', pid).single(),
-            supabase.from('chat_messages')
+        const derivedPromises = otherIds.map(async (oid) => {
+          if (userType === 'doctor') {
+            // oid is the patient
+            const { data: patient } = await supabase.from('patients').select('*').eq('id', oid).single();
+            // Get last message
+            const { data: lastMsg } = await supabase
+              .from('chat_messages')
               .select('*')
-              .or(`and(sender_id.eq.${user.id},receiver_id.eq.${pid}),and(sender_id.eq.${pid},receiver_id.eq.${user.id})`)
+              .or(`and(sender_id.eq.${user.id},receiver_id.eq.${oid}),and(sender_id.eq.${oid},receiver_id.eq.${user.id})`)
               .order('created_at', { ascending: false })
               .limit(1)
-              .single()
-          ]);
-
-          return {
-            id: `derived-${pid}`,
-            patient_id: pid,
-            doctor_id: user.id,
-            created_at: lastMsg?.created_at || new Date().toISOString(),
-            last_message_at: lastMsg?.created_at || null,
-            doctor: { 
-              id: user.id, 
-              name: '', 
-              email: '', 
-              degree: '', 
-              institution: '', 
-              experience_years: 0, 
-              specialization: '',
-              certifications: '',
-              created_at: new Date().toISOString(),
-              profile_pic_url: '',
-              theme_preference: 'light'
-            } as any,
-            patient: patient as any,
-          } as Chat;
+              .single();
+            return {
+              id: `derived-${oid}`,
+              patient_id: oid,
+              doctor_id: user.id,
+              created_at: lastMsg?.created_at || new Date().toISOString(),
+              last_message_at: lastMsg?.created_at || null,
+              doctor: {
+                id: user.id,
+                name: user.user_metadata?.name || '',
+                email: user.email || '',
+                degree: '',
+                institution: '',
+                experience_years: 0,
+                specialization: '',
+                certifications: '',
+                created_at: '',
+                profile_pic_url: '',
+                theme_preference: 'light',
+              },
+              patient,
+            } as Chat;
+          } else {
+            // oid is the doctor
+            const { data: doctor } = await supabase.from('doctors').select('*').eq('id', oid).single();
+            // Get last message
+            const { data: lastMsg } = await supabase
+              .from('chat_messages')
+              .select('*')
+              .or(`and(sender_id.eq.${user.id},receiver_id.eq.${oid}),and(sender_id.eq.${oid},receiver_id.eq.${user.id})`)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+            return {
+              id: `derived-${oid}`,
+              patient_id: user.id,
+              doctor_id: oid,
+              created_at: lastMsg?.created_at || new Date().toISOString(),
+              last_message_at: lastMsg?.created_at || null,
+              doctor,
+              patient: {
+                id: user.id,
+                name: user.user_metadata?.name || '',
+                email: user.email || '',
+                age: 0,
+                gender: '',
+              },
+            } as Chat;
+          }
         });
-
         const derived = await Promise.all(derivedPromises);
         chatsWithData = derived as any;
       }
-
       setChats(chatsWithData);
     } catch (error: any) {
       console.error('Error fetching chats:', error);
@@ -368,86 +382,99 @@ const EnhancedChatInterface: React.FC = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
-      {/* Doctor List / Chat List */}
+      {/* Sidebar: Patient sees all doctors, Doctor sees only patients who messaged them */}
       <Card className="mandala-shadow">
         <CardHeader>
           <CardTitle className="sanskrit-title flex items-center gap-2">
             <Users className="h-5 w-5" />
             {userType === 'patient' ? 'Available Doctors' : 'Patient Chats'}
           </CardTitle>
-          {userType === 'patient' && (
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search doctors..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          )}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={userType === 'patient' ? 'Search doctors...' : 'Search patients...'}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </CardHeader>
         <CardContent className="space-y-2 max-h-[500px] overflow-y-auto">
           {userType === 'patient' ? (
-            // Patient view - show doctors
-            filteredDoctors.map((doctor) => (
-              <div
-                key={doctor.id}
-                onClick={() => startChatWithDoctor(doctor)}
-                className={`p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-mystic ${
-                  selectedChat?.doctor_id === doctor.id ? 'bg-primary/10 border-primary' : ''
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {doctor.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium truncate">{doctor.name}</h4>
-                    <p className="text-sm text-muted-foreground truncate">{doctor.specialization}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {doctor.experience_years} years exp
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {doctor.degree}
-                      </Badge>
+            // Patient view: show all doctors, highlight if chat exists
+            doctors
+              .filter(doctor =>
+                doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((doctor) => {
+                // Find if chat exists with this doctor
+                const existingChat = chats.find(chat => chat.doctor_id === doctor.id && chat.patient_id === user?.id);
+                return (
+                  <div
+                    key={doctor.id}
+                    onClick={() => startChatWithDoctor(doctor)}
+                    className={`p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-mystic ${
+                      selectedChat?.doctor_id === doctor.id ? 'bg-primary/10 border-primary' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {doctor.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium truncate">{doctor.name}</h4>
+                        <p className="text-sm text-muted-foreground truncate">{doctor.specialization}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary" className="text-xs">
+                            {doctor.experience_years} years exp
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {doctor.degree}
+                          </Badge>
+                        </div>
+                        {existingChat && (
+                          <span className="text-xs text-green-600">Chat exists</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+          ) : (
+            // Doctor view: show only patients who have messaged this doctor
+            chats
+              .filter(chat =>
+                chat.doctor_id === user?.id && chat.patient && chat.patient.name && chat.patient.name.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((chat) => (
+                <div
+                  key={chat.id}
+                  onClick={() => setSelectedChat(chat)}
+                  className={`p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-mystic ${
+                    selectedChat?.id === chat.id ? 'bg-primary/10 border-primary' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-secondary text-secondary-foreground">
+                        {chat.patient?.name ? chat.patient.name.split(' ').map(n => n[0]).join('') : 'P'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium truncate">{chat.patient?.name || 'Patient'}</h4>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {chat.patient?.age ? `Age: ${chat.patient.age} • ` : ''}
+                        {chat.last_message_at
+                          ? `Last message: ${new Date(chat.last_message_at).toLocaleDateString()}`
+                          : 'No messages yet'}
+                      </p>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            // Doctor view - show patient chats
-            chats.map((chat) => (
-              <div
-                key={chat.id}
-                onClick={() => setSelectedChat(chat)}
-                className={`p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-mystic ${
-                  selectedChat?.id === chat.id ? 'bg-primary/10 border-primary' : ''
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-secondary text-secondary-foreground">
-                      {chat.patient?.name ? chat.patient.name.split(' ').map(n => n[0]).join('') : 'P'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium truncate">{chat.patient?.name || 'Patient'}</h4>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {chat.patient?.age ? `Age: ${chat.patient.age} • ` : ''}
-                      {chat.last_message_at 
-                        ? `Last message: ${new Date(chat.last_message_at).toLocaleDateString()}`
-                        : 'No messages yet'
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))
+              ))
           )}
         </CardContent>
       </Card>

@@ -229,7 +229,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userType }) => {
   return (
     <div className="space-y-8">
       {/* Profile Header */}
-      <Card className="mandala-shadow">
+      
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -543,7 +543,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ userType }) => {
             </div>
           </div>
         </CardContent>
-      </Card>
+      
     </div>
   );
 };

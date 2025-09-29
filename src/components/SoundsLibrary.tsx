@@ -21,54 +21,54 @@ const vedicSounds: Sound[] = [
     title: 'Om Chanting',
     description: 'Sacred Om vibrations for deep meditation and spiritual awakening',
     category: 'Mantras',
-    duration: '10:00',
+    duration: '30:54',
     benefits: ['Stress Relief', 'Spiritual Connection', 'Mental Clarity'],
-    url: '#'
+    url: '/sounds/om.mp3'
   },
   {
     id: '2',
     title: 'Gayatri Mantra',
     description: 'Ancient Vedic hymn for wisdom and enlightenment',
     category: 'Mantras',
-    duration: '8:30',
+    duration: '56:47',
     benefits: ['Wisdom', 'Protection', 'Spiritual Growth'],
-    url: '#'
+    url: '/sounds/mantra.mp3'
   },
   {
     id: '3',
     title: 'Tibetan Singing Bowls',
     description: 'Healing frequencies from traditional Tibetan bowls',
     category: 'Healing Sounds',
-    duration: '15:00',
+    duration: '33:27',
     benefits: ['Deep Relaxation', 'Chakra Balancing', 'Sound Healing'],
-    url: '#'
+    url: '/sounds/bowl.mp3'
   },
   {
     id: '4',
     title: 'Forest Meditation',
     description: 'Natural forest sounds combined with gentle mantras',
     category: 'Nature',
-    duration: '12:00',
+    duration: '10:15',
     benefits: ['Grounding', 'Peace', 'Nature Connection'],
-    url: '#'
+    url: '/sounds/forest.mp3'
   },
   {
     id: '5',
     title: 'Pranayama Guide',
     description: 'Guided breathing exercises with traditional sounds',
     category: 'Breathing',
-    duration: '6:45',
+    duration: '15:44',
     benefits: ['Breath Control', 'Energy Balance', 'Calm Mind'],
-    url: '#'
+    url: '/sounds/pranayam.mp3'
   },
   {
     id: '6',
     title: 'Chakra Healing Frequencies',
     description: 'Seven chakra tones for energy center alignment',
     category: 'Healing Sounds',
-    duration: '21:00',
+    duration: '21:42',
     benefits: ['Energy Alignment', 'Healing', 'Balance'],
-    url: '#'
+    url: '/sounds/chakra.mp3'
   }
 ];
 
@@ -88,15 +88,46 @@ const SoundsLibrary: React.FC = () => {
     ? sounds 
     : sounds.filter(sound => sound.category === selectedCategory);
 
+
   const playSound = (sound: Sound) => {
     setCurrentSound(sound);
     setIsPlaying(true);
-    // In a real app, you would load and play the actual audio file
+    setCurrentTime(0);
+    setDuration(0);
+    setTimeout(() => {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play();
+      }
+    }, 100);
   };
 
+
   const togglePlayPause = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
     setIsPlaying(!isPlaying);
   };
+  // Audio element event handlers
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const onLoadedMetadata = () => setDuration(audio.duration);
+    const onTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const onEnded = () => setIsPlaying(false);
+    audio.addEventListener('loadedmetadata', onLoadedMetadata);
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('ended', onEnded);
+    return () => {
+      audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+      audio.removeEventListener('timeupdate', onTimeUpdate);
+      audio.removeEventListener('ended', onEnded);
+    };
+  }, [currentSound]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -119,47 +150,54 @@ const SoundsLibrary: React.FC = () => {
       {currentSound && (
         <Card className="mandala-shadow sticky top-20 z-40 bg-background/95 backdrop-blur-sm">
           <CardContent className="p-6">
+            <audio
+              ref={audioRef}
+              src={currentSound.url}
+              autoPlay
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+              onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
+              style={{ display: 'none' }}
+            />
             <div className="flex items-center space-x-4">
               <div className="flex-1">
                 <h4 className="font-semibold sanskrit-title">{currentSound.title}</h4>
                 <p className="text-sm text-muted-foreground">{currentSound.category}</p>
               </div>
-              
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm">
-                  <SkipBack className="h-4 w-4" />
-                </Button>
                 <Button onClick={togglePlayPause} size="sm">
                   {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 </Button>
-                <Button variant="ghost" size="sm">
-                  <SkipForward className="h-4 w-4" />
-                </Button>
               </div>
-              
               <div className="flex items-center space-x-2">
                 <Volume2 className="h-4 w-4" />
                 <Slider
                   value={volume}
-                  onValueChange={setVolume}
+                  onValueChange={val => {
+                    setVolume(val);
+                    if (audioRef.current) audioRef.current.volume = val[0] / 100;
+                  }}
                   max={100}
                   step={1}
                   className="w-20"
                 />
               </div>
             </div>
-            
             <div className="mt-4 space-y-2">
               <Slider
                 value={[currentTime]}
-                onValueChange={(value) => setCurrentTime(value[0])}
+                onValueChange={val => {
+                  setCurrentTime(val[0]);
+                  if (audioRef.current) audioRef.current.currentTime = val[0];
+                }}
                 max={duration || 100}
                 step={1}
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{formatTime(currentTime)}</span>
-                <span>{currentSound.duration}</span>
+                <span>{formatTime(duration)}</span>
               </div>
             </div>
           </CardContent>

@@ -192,48 +192,57 @@ const PatientDashboard = () => {
     });
   };
 
+
+  // New: State for generated PDF download
+  const [dietPdfUrl, setDietPdfUrl] = useState<string | null>(null);
+  const [dietPdfName, setDietPdfName] = useState<string | null>(null);
+  
+  // Form state for diet generation
+  const [dietForm, setDietForm] = useState({
+    goal: '',
+    concern: '',
+    restrictions: ''
+  });
+
   const handleGenerateDiet = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
+    setDietPdfUrl(null);
+    setDietPdfName(null);
     
-    const goal = formData.get('goal') as string;
-    const concern = formData.get('concern') as string;
-    const restrictions = formData.get('restrictions') as string;
-
-    const dietPlan = {
-      goal,
-      concern,
-      restrictions,
-      generated_at: new Date().toISOString(),
-      recommendations: [
-        "Include warm, cooked foods to support digestion",
-        "Favor sweet, sour, and salty tastes to balance Vata",
-        "Avoid cold, raw foods and excessive bitter/astringent tastes",
-        "Eat at regular times and avoid skipping meals"
-      ]
-    };
-
+    // Debug logging
+    console.log('Form data:', dietForm);
+    
+    const { goal, concern, restrictions } = dietForm;
     try {
-      const { error } = await supabase
-        .from('diet_charts')
-        .insert({
-          patient_id: user?.id,
-          generated_diet: dietPlan,
-        });
-
-      if (error) throw error;
-
+      const response = await fetch("http://localhost:8002/generate-diet-chart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ 
+          goal, 
+          concern, 
+          restrictions,
+          patient_name: patient?.name || "Patient",
+          patient_age: patient?.age || 30,
+          patient_gender: patient?.gender || "Not specified",
+          patient_height: patient?.height || null,
+          patient_weight: patient?.weight || null
+        })
+      });
+      if (!response.ok) throw new Error("Failed to generate diet chart");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      setDietPdfUrl(url);
+      setDietPdfName("Diet_chart.pdf");
       toast({
         title: "Success",
         description: "Your personalized diet plan has been generated!",
       });
-
-      fetchLastDietChart();
-      (e.target as HTMLFormElement).reset();
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to generate diet chart.",
         variant: "destructive",
       });
     }
@@ -310,16 +319,16 @@ const PatientDashboard = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => setActiveTab("shop")}>
-                  🛒 Shop
+                    Bazaar
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveTab("community")}>
-                  👥 Community
+                  Community
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveTab("sounds")}>
-                  🎵 Sounds of the Vedas
+                  Sounds of the Vedas
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveTab("yoga")}>
-                  🧘 Yoga
+                  Yoga
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -371,10 +380,10 @@ const PatientDashboard = () => {
             {/* Recipes Feed */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold sanskrit-title">Recommended Recipes</h3>
+                <h3 className="text-2xl font-bold sanskrit-title">Ved-Aahar' Doctor Recommended Recipes</h3>
                 <Badge variant="secondary" className="px-3 py-1">
-                  <Sparkles className="h-4 w-4 mr-1" />
-                  Personalized for You
+                  <ChefHat className="h-4 w-4 mr-1" />
+                  
                 </Badge>
               </div>
               
@@ -477,7 +486,11 @@ const PatientDashboard = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="goal">Current Health Goal</Label>
-                      <Select name="goal" required>
+                      <Select 
+                        value={dietForm.goal} 
+                        onValueChange={(value) => setDietForm(prev => ({ ...prev, goal: value }))}
+                        required
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select your goal" />
                         </SelectTrigger>
@@ -492,7 +505,11 @@ const PatientDashboard = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="concern">Primary Concern</Label>
-                      <Select name="concern" required>
+                      <Select 
+                        value={dietForm.concern} 
+                        onValueChange={(value) => setDietForm(prev => ({ ...prev, concern: value }))}
+                        required
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select primary concern" />
                         </SelectTrigger>
@@ -510,7 +527,8 @@ const PatientDashboard = () => {
                   <div className="space-y-2">
                     <Label htmlFor="restrictions">Food Preferences & Restrictions</Label>
                     <Textarea 
-                      name="restrictions"
+                      value={dietForm.restrictions}
+                      onChange={(e) => setDietForm(prev => ({ ...prev, restrictions: e.target.value }))}
                       placeholder="e.g., allergic to nuts, prefer warm foods, avoid dairy..." 
                       rows={3}
                     />
@@ -520,6 +538,15 @@ const PatientDashboard = () => {
                     <Sparkles className="h-5 w-5 mr-2" />
                     Generate My Diet Plan
                   </Button>
+                  {dietPdfUrl && (
+                    <a
+                      href={dietPdfUrl}
+                      download={dietPdfName || "Diet_chart.pdf"}
+                      className="block mt-4 text-center text-primary underline"
+                    >
+                      Download Your Diet Chart (PDF)
+                    </a>
+                  )}
                 </form>
               </CardContent>
             </Card>
@@ -527,74 +554,7 @@ const PatientDashboard = () => {
 
           {/* Calorie Tracker */}
           <TabsContent value="tracker" className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-4xl font-bold sanskrit-title gradient-text mb-4">
-                Ayurvedic Calorie Tracker
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                Track nutrition with Rasa & Guna classification
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
-                <Card className="mandala-shadow">
-                  <CardHeader>
-                    <CardTitle className="sanskrit-title">Today's Intake</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="text-center">
-                      <div className="text-4xl font-bold text-primary mb-2">1,247 / 1,800</div>
-                      <p className="text-muted-foreground">Calories consumed today</p>
-                    </div>
-                    
-                    <div className="w-full bg-muted rounded-full h-3">
-                      <div className="bg-gradient-to-r from-primary to-secondary h-3 rounded-full" style={{width: '69%'}}></div>
-                    </div>
-                    
-                    <Button className="w-full" variant="outline">
-                      <Calculator className="h-4 w-4 mr-2" />
-                      Add Food Item
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <div>
-                <Card className="mandala-shadow">
-                  <CardHeader>
-                    <CardTitle className="sanskrit-title">Dosha Balance</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Vata</span>
-                        <span className="text-sm font-medium">45%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div className="bg-primary h-2 rounded-full" style={{width: '45%'}}></div>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Pitta</span>
-                        <span className="text-sm font-medium">30%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div className="bg-secondary h-2 rounded-full" style={{width: '30%'}}></div>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Kapha</span>
-                        <span className="text-sm font-medium">25%</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div className="bg-accent h-2 rounded-full" style={{width: '25%'}}></div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <FoodLoggingComponent />
           </TabsContent>
 
           {/* My Doctor */}

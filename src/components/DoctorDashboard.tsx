@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import DoctorPatientsSection from "./DoctorPatientsSection";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -360,16 +361,7 @@ const DoctorDashboard = () => {
                 Monitor and guide your patients' wellness journeys
               </p>
             </div>
-
-            <Card className="mandala-shadow">
-              <CardContent className="p-8 text-center">
-                <Stethoscope className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Patient Dashboard Coming Soon</h3>
-                <p className="text-muted-foreground">
-                  Advanced patient management and consultation features will be available in the next update.
-                </p>
-              </CardContent>
-            </Card>
+            {user?.id && <DoctorPatientsSection doctorId={user.id} />}
           </TabsContent>
 
           {/* Recipes */}
@@ -482,19 +474,163 @@ const DoctorDashboard = () => {
                 Educational Resources
               </h2>
               <p className="text-muted-foreground text-lg">
-                Share and access Ayurvedic knowledge and research
+                Curated resources for Ayurvedic practitioners: research, guidelines, and best practices.
               </p>
             </div>
 
-            <Card className="mandala-shadow">
-              <CardContent className="p-8 text-center">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Educational Platform Coming Soon</h3>
-                <p className="text-muted-foreground">
-                  Comprehensive learning modules and research library will be available in the next update.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Curated Ayurvedic resources */}
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/ayush-logo.svg" alt="AYUSH Logo" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">Ministry of AYUSH Guidelines</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Official government guidelines for Ayurvedic practice in India.</p>
+                  <a href="https://www.ayush.gov.in/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Visit Website</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/journal-ayurveda.svg" alt="Journal of Ayurveda" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">Journal of Ayurveda and Integrative Medicine</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Peer-reviewed research articles and reviews on Ayurveda.</p>
+                  <a href="https://www.jaim.in/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Read Journal</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/ccras-logo.svg" alt="CCRAS Logo" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">CCRAS Research Portal</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Central Council for Research in Ayurvedic Sciences: clinical trials, monographs, and more.</p>
+                  <a href="https://www.ccras.nic.in/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Explore CCRAS</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/who-logo.svg" alt="WHO Logo" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">WHO Benchmarks for Training in Ayurveda</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">World Health Organization's standards for Ayurveda education and practice.</p>
+                  <a href="https://www.who.int/publications/i/item/9789241515436" target="_blank" rel="noopener noreferrer" className="text-primary underline">View WHO Document</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/formulary.svg" alt="Ayurvedic Formulary" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">Ayurvedic Formulary of India</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Comprehensive list of classical Ayurvedic formulations and their standards.</p>
+                  <a href="https://www.ayush.gov.in/docs/afivol1.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline">Download PDF</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/nia-logo.svg" alt="NIA Logo" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">National Institute of Ayurveda (NIA)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Academic programs, research, and resources for practitioners and students.</p>
+                  <a href="https://www.nia.nic.in/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Visit NIA</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/aiia-logo.svg" alt="AIIA Logo" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">All India Institute of Ayurveda (AIIA)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Premier institute for Ayurveda education, research, and clinical care.</p>
+                  <a href="https://aiia.gov.in/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Visit AIIA</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/ccim-elearning.svg" alt="CCIM eLearning" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">Ayurveda eLearning Portal (CCIM)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Online learning modules and resources for Ayurveda students and practitioners.</p>
+                  <a href="https://elearning.ccimindia.org/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Go to eLearning</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/ayush-portal.svg" alt="AYUSH Portal" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">Ayurveda Research Database (AYUSH)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Database of published research in Ayurveda and related systems.</p>
+                  <a href="https://ayushportal.nic.in/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Search Database</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/pharmacopoeia.svg" alt="Ayurvedic Pharmacopoeia" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">Ayurvedic Pharmacopoeia of India</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Standards for single drugs and compound formulations in Ayurveda.</p>
+                  <a href="https://www.ayush.gov.in/docs/ayurvedic-pharmacopoeia-part-i-volume-i.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline">Download PDF</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/namstp-logo.svg" alt="NAMSTP Logo" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">National AYUSH Morbidity and Standardized Terminologies Portal</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Standardized clinical terminologies and morbidity codes for Ayurveda.</p>
+                  <a href="https://namstp.ayush.gov.in/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Visit NAMSTP</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/manuscripts.svg" alt="Ayurveda Manuscripts" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">Ayurveda Books and Manuscripts (Digital Library)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Access digitized classical Ayurveda texts and manuscripts.</p>
+                  <a href="https://www.ayurvedamanuscripts.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Explore Library</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/rav-logo.svg" alt="RAV Logo" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">RAV (Rashtriya Ayurveda Vidyapeeth)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Continuing medical education, training, and fellowships for Ayurveda practitioners.</p>
+                  <a href="https://ravdelhi.nic.in/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Visit RAV</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/ayurveda-research.svg" alt="Ayurveda Research" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">Ayurveda International Research Journals</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Access international journals publishing Ayurveda research.</p>
+                  <a href="https://www.ayurvedaresearch.org/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Browse Journals</a>
+                </CardContent>
+              </Card>
+              <Card className="mandala-shadow">
+                <CardHeader>
+                  <img src="/assets/jaim-case-report.svg" alt="J-AIM Case Report" className="h-60 mx-auto mb-2" />
+                  <CardTitle className="text-lg">Ayurvedic Clinical Case Reports (J-AIM)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-2">Case reports and clinical experiences in Ayurveda practice.</p>
+                  <a href="https://www.jaim.in/article.asp?issn=0975-9476;year=2020;volume=11;issue=3;spage=255;epage=259;aulast=Patel" target="_blank" rel="noopener noreferrer" className="text-primary underline">Read Case Report</a>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Messages */}

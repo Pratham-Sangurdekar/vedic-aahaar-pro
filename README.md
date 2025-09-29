@@ -1,73 +1,74 @@
-# Welcome to your Lovable project
+##Welcome to Project Ved-Aahaar
 
-## Project info
+Project Info
 
-**URL**: https://lovable.dev/projects/6ba5d12d-3e5f-4d52-9575-741936c587cf
+This repository contains the source code for Ved-Aahaar, a nutrition and wellness application designed to blend modern nutritional science with Ayurvedic wisdom. The project is being developed as part of the Smart India Hackathon (SIH) by the student team CodeBlooders from MPSTME.
 
-## How can I edit this code?
+Team Members:
+	•	Maansi Mishra
+	•	Riddhima Shah
+	•	Avni Sethi
+	•	Lakshya Bharghav
+	•	Kaushal Jain
+	•	Pratham Sangurdekar
 
-There are several ways of editing your application.
 
-**Use Lovable**
+How to Run the Project Locally
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6ba5d12d-3e5f-4d52-9575-741936c587cf) and start prompting.
+To set up and run the project on your local machine, follow the steps below:
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Step 1: Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Step 2: Navigate to the project directory
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Step 3: Install the dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Start the development server
 npm run dev
-```
 
-**Edit a file directly in GitHub**
+Once the server is running, you can access the application in your browser at:
+http://localhost:5173/
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
 
-**Use GitHub Codespaces**
+Technologies Used
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+This project has been built using:
+	•	React – Frontend framework
+	•	TypeScript – Type-safe development
+	•	Vite – Lightning-fast build tool
+	•	Tailwind CSS – Utility-first CSS framework
+	•	shadcn/ui – Component library for modern UI
 
-## What technologies are used for this project?
 
-This project is built with:
+Deployment
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+The application can be deployed on platforms like Vercel, Netlify, or any Node.js-compatible hosting service.
 
-## How can I deploy this project?
+To deploy:
+	1.	Build the project with npm run build
+	2.	Upload the contents of the dist/ folder to your hosting service.
 
-Simply open [Lovable](https://lovable.dev/projects/6ba5d12d-3e5f-4d52-9575-741936c587cf) and click on Share -> Publish.
 
-## Can I connect a custom domain to my Lovable project?
+Vision
 
-Yes, you can!
+Our project aims to create a personalized food tracker and wellness guide that integrates:
+	•	Modern nutrient tracking (calories, macros, micros)
+	•	Ayurvedic principles (Rasa, Guna, Virya, Vipaka, Prabhava, Dosha impact)
+	•	AI-powered recommendations for balanced diet and lifestyle choices
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+We envision this as a bridge between tradition and technology to promote holistic health and well-being.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+Disclaimer
+
+The information provided by the application is AI-generated and may not always be factually accurate. Please consult a qualified healthcare professional before making health-related decisions.
+
+
+About Team CodeBlooders 
+
+We are a passionate team of six engineering and management students from MPSTME, united by a common goal: to build technology that creates real-world impact.
+
+As Team CodeBlooders, we believe in pushing boundaries by combining technical expertise, creativity, and innovation. Participating in Smart India Hackathon (SIH) is our opportunity to contribute towards solving meaningful problems and showcase how student-driven innovation can transform ideas into impactful solutions.

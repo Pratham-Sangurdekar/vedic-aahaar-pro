@@ -235,10 +235,10 @@ const GyanModule: React.FC = () => {
         {/* Header */}
         <div className="text-center">
           <h1 className="text-4xl font-bold sanskrit-title gradient-text mb-4">
-            {t('knowledgeModule', language)}
+            {t('', language)}
           </h1>
           <p className="text-muted-foreground text-lg mb-6">
-            Discover the wisdom of Ayurveda through interactive learning modules
+            
           </p>
 
           {/* Progress Overview */}
@@ -259,10 +259,15 @@ const GyanModule: React.FC = () => {
 
         {/* Modules Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {modules.map((module, index) => {
+          {Array.from(
+            new Map(
+              modules
+                .sort((a, b) => a.order_index - b.order_index)
+                .map(m => [m.id, m])
+            ).values()
+          ).map((module, idx, arr) => {
             const isCompleted = isModuleCompleted(module.id);
-            const isUnlocked = isModuleUnlocked(index);
-
+            const isUnlocked = isModuleUnlocked(idx);
             return (
               <Card 
                 key={module.id} 
@@ -273,7 +278,7 @@ const GyanModule: React.FC = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <Badge variant={isCompleted ? 'default' : 'secondary'}>
-                      Module {index + 1}
+                      Module {idx + 1}
                     </Badge>
                     <div className="flex items-center gap-2">
                       {isCompleted && <CheckCircle className="h-4 w-4 text-green-600" />}

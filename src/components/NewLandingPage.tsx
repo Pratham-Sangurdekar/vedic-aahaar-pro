@@ -13,6 +13,7 @@ import expert from '@/assets/expert.jpg';
 
 import tracker from '@/assets/tracker.jpg';
 import Navbar from './Navbar';
+import TestimonialScroller from './TestimonialScroller';
 import { useTheme } from '@/contexts/ThemeContext';
 import ConsultationModal from './ConsultationModal';
 
@@ -163,10 +164,10 @@ const NewLandingPage = () => {
               ? 'Personalized Ayurvedic meal plans crafted by AI that understands your constitution, goals, and preferences.'
               : 'एआई द्वारा बनाए गए व्यक्तिगत आयुर्वेदिक आहार योजनाएँ जो आपकी प्रकृति, लक्ष्यों और पसंद को समझती हैं।'}
           </p>
-          <ul className="list-disc pl-6 space-y-2 mb-12 max-w-3xl">
-            <li className="text-white/90">{language === 'en' ? 'Dosha-based planning' : 'दोष आधारित योजना'}</li>
-            <li className="text-white/90">{language === 'en' ? 'Custom recipes with benefits' : 'लाभों सहित कस्टम रेसिपी'}</li>
-            <li className="text-white/90">{language === 'en' ? 'Seasonal recommendations' : 'मौसमी अनुशंसाएँ'}</li>
+          <ul className=" pl-6 space-y-2 mb-12 max-w-3xl">
+            <li className="text-white/90">{language === 'en' ? '✦︎ Dosha-based planning' : 'दोष आधारित योजना'}</li>
+            <li className="text-white/90">{language === 'en' ? '✦︎ Custom recipes with benefits' : 'लाभों सहित कस्टम रेसिपी'}</li>
+            <li className="text-white/90">{language === 'en' ? '✦︎ Seasonal recommendations' : 'मौसमी अनुशंसाएँ'}</li>
           </ul>
          
 
@@ -226,10 +227,10 @@ const NewLandingPage = () => {
               ? 'Track your daily nutrition with rasa and guna analysis. Maintain balance according to Ayurvedic wisdom.'
               : 'रसा और गुण के विश्लेषण के साथ अपना दैनिक पोषण ट्रैक करें। आयुर्वेदिक सिद्धांतों के अनुसार संतुलन बनाए रखें।'}
           </h3>
-          <ul className="list-disc pl-6 space-y-2 mb-12 max-w-3xl ml-right text-right">
-            <li className="text-white/90">{language === 'en' ? 'Six-taste balancing' : 'षड्रस संतुलन'}</li>
-            <li className="text-white/90">{language === 'en' ? 'Guna (qualities) analysis' : 'गुणों का विश्लेषण'}</li>
-            <li className="text-white/90">{language === 'en' ? 'Daily progress monitoring' : 'दैनिक प्रगति निगरानी'}</li>
+          <ul className="  pl-6 space-y-2 mb-12 max-w-3xl ml-auto text-right ">
+            <li className="text-white/90">{language === 'en' ? 'Six-taste balancing ✦︎' : 'षड्रस संतुलन'}</li>
+            <li className="text-white/90">{language === 'en' ? 'Guna (qualities) analysis ✦︎' : 'गुणों का विश्लेषण'}</li>
+            <li className="text-white/90">{language === 'en' ? 'Daily progress monitoring ✦︎' : 'दैनिक प्रगति निगरानी'}</li>
           </ul>
           
 
@@ -284,10 +285,10 @@ const NewLandingPage = () => {
               ? 'Connect with certified Ayurvedic practitioners for consultations, share files, and get expert advice.'
               : 'प्रमाणित आयुर्वेदिक विशेषज्ञों से परामर्श करें, फ़ाइलें साझा करें और विशेषज्ञ सलाह प्राप्त करें।'}
           </p>
-          <ul className="list-disc pl-6 space-y-2 mb-12 max-w-3xl">
-            <li className="text-white/90">{language === 'en' ? 'Real-time doctor chat' : 'रीयल-टाइम डॉक्टर चैट'}</li>
-            <li className="text-white/90">{language === 'en' ? 'File/PDF sharing' : 'फ़ाइल/पीडीएफ साझा करना'}</li>
-            <li className="text-white/90">{language === 'en' ? 'Consultation scheduling' : 'परामर्श शेड्यूलिंग'}</li>
+          <ul className=" pl-6 space-y-2 mb-12 max-w-3xl">
+            <li className="text-white/90">{language === 'en' ? '✦︎ Real-time doctor chat' : 'रीयल-टाइम डॉक्टर चैट'}</li>
+            <li className="text-white/90">{language === 'en' ? '✦︎ File/PDF sharing' : 'फ़ाइल/पीडीएफ साझा करना'}</li>
+            <li className="text-white/90">{language === 'en' ? '✦︎ Consultation scheduling' : 'परामर्श शेड्यूलिंग'}</li>
           </ul>
           
 
@@ -354,7 +355,7 @@ const NewLandingPage = () => {
             Ayurvedic Recipes
           </h2>
           
-          <p className="text-xl text-muted-foreground mb-8 max-w-3l text-right">
+          <p className="text-xl text-muted-foreground mb-12 max-w-l text-right">
             Discover time-honored recipes crafted to balance your doshas and nourish your body. Each recipe includes detailed ingredient benefits, preparation methods, and seasonal recommendations from certified Ayurvedic practitioners.
           </p>
           
@@ -379,14 +380,14 @@ const NewLandingPage = () => {
                 description: "Refreshing digestive aid perfect for summer meals"
               }
             ].map((recipe, index) => (
-              <div key={index} className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-6 border border-orange-200 dark:border-orange-800/30 hover:scale-105 transition-all duration-300 hover:shadow-lg">
+              <div key={index} className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-6 border border-orange-200 dark:border-orange-800/30 hover:scale-105 transition-all duration-300 hover:shadow-lg">
                 <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-400 rounded-full flex items-center justify-center mb-4 mx-auto">
                   <ChefHat className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-lg mb-2 text-foreground">{recipe.title}</h3>
-                <p className="text-sm text-orange-600 dark:text-orange-400 mb-2">Best for {recipe.dosha}</p>
-                <p className="text-xs text-muted-foreground mb-3">⏱️ {recipe.time}</p>
-                <p className="text-sm text-muted-foreground">{recipe.description}</p>
+                <h3 className="font-semibold text-lg mb-2 text-foreground text-center">{recipe.title}</h3>
+                <p className="text-sm text-orange-600 text-center dark:text-orange-400">Best for {recipe.dosha}</p>
+                <p className="text-xs text-muted-foreground text-center  mb-3">⏱️ {recipe.time}</p>
+                <p className="text-sm text-muted-foreground text-center">{recipe.description}</p>
               </div>
             ))}
           </div>
@@ -446,7 +447,7 @@ const NewLandingPage = () => {
                 description: "Learn proper food combinations for digestion"
               }
             ].map((module, index) => (
-              <div key={index} className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-6 border border-emerald-200 dark:border-emerald-800/30 hover:scale-105 transition-all duration-300 hover:shadow-lg">
+              <div key={index} className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-6 border border-emerald-200 dark:border-emerald-800/30 hover:scale-105 transition-all duration-300 hover:shadow-lg">
                 <div className="text-3xl mb-4">{module.icon}</div>
                 <h3 className="font-semibold text-lg mb-2 text-foreground">{module.title}</h3>
                 <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-2">{module.lessons}</p>
@@ -542,7 +543,7 @@ const NewLandingPage = () => {
           </div>
         </div>
       </section>
-
+ <TestimonialScroller />
       {/* Enhanced Footer */}
       <footer className="border-t border-border bg-background">
         <div className="vedic-border"></div>
@@ -592,7 +593,13 @@ const NewLandingPage = () => {
             </p>
           </div>
         </div>
-      </footer>
+
+
+  {/* Patient Testimonials - now just above footer */}
+ 
+  </footer>
+
+
 
       {/* Consultation Modal */}
       <ConsultationModal 

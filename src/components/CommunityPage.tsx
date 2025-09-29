@@ -7,109 +7,126 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, MessageCircle, Share2, Users, TrendingUp, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CommunityPost {
   id: string;
   content: string;
   author: string;
+  authorPic?: string | null;
   timestamp: string;
-  likes: number;
-  comments: number;
   category: string;
+  likes: number;
   isLiked: boolean;
 }
-
-const samplePosts: CommunityPost[] = [
-  {
-    id: '1',
-    content: 'Started my Ayurvedic journey 3 months ago and feeling amazing! The diet changes have really helped with my energy levels. Anyone else experienced similar improvements?',
-    author: 'Priya S.',
-    timestamp: '2 hours ago',
-    likes: 24,
-    comments: 8,
-    category: 'Success Story',
-    isLiked: false
-  },
-  {
-    id: '2',
-    content: 'Can someone recommend good yoga poses for better digestion? I\'ve been having some issues lately and would love natural solutions.',
-    author: 'Raj M.',
-    timestamp: '4 hours ago',
-    likes: 12,
-    comments: 15,
-    category: 'Question',
-    isLiked: true
-  },
-  {
-    id: '3',
-    content: 'Just finished a 7-day detox program with triphala and feel incredibly refreshed! The difference in my skin clarity is remarkable. Highly recommend!',
-    author: 'Anita K.',
-    timestamp: '1 day ago',
-    likes: 45,
-    comments: 22,
-    category: 'Experience',
-    isLiked: false
-  },
-  {
-    id: '4',
-    content: 'Weekly meditation group meeting tomorrow at 6 PM. We\'ll be focusing on stress management techniques. New members welcome!',
-    author: 'Wellness Circle',
-    timestamp: '1 day ago',
-    likes: 18,
-    comments: 6,
-    category: 'Event',
-    isLiked: false
-  }
-];
 
 const CommunityPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [posts, setPosts] = useState<CommunityPost[]>(samplePosts);
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [newPost, setNewPost] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [loading, setLoading] = useState(false);
+  const [activeMembers, setActiveMembers] = useState<number | null>(null);
+  const [postsThisWeek, setPostsThisWeek] = useState<number | null>(null);
+  const [positiveFeedback, setPositiveFeedback] = useState<number | null>(null);
+  const categories = ['all', 'Question', 'Success Story', 'Experience', 'Event', 'Recipe Share', 'General'];
 
-  const categories = ['all', 'Question', 'Success Story', 'Experience', 'Event', 'Recipe Share'];
+  // Fetch posts from Supabase (patient_posts only)
+  useEffect(() => {
+    const fetchStatsAndPosts = async () => {
+      setLoading(true);
+      // Fetch patient posts with patient info
+      const { data: patientPosts } = await supabase
+        .from('patient_posts')
+        .select('id, content, created_at, patient_id, patients(name, profile_pic_url)');
+      // Fetch likes for current user
+      let likesData: any[] = [];
+      if (user?.role === 'patient' && user?.id) {
+        const { data: likes } = await supabase
+          .from('patient_post_likes')
+          .select('post_id')
+          .eq('patient_id', user.id);
+        likesData = likes || [];
+      }
+      // Fetch like counts for all posts
+      const { data: allLikes } = await supabase
+        .from('patient_post_likes')
+        .select('post_id');
+      const likeCountMap: Record<string, number> = {};
+      (allLikes || []).forEach((like: any) => {
+        likeCountMap[like.post_id] = (likeCountMap[like.post_id] || 0) + 1;
+      });
+      const likedPostIds = new Set((likesData || []).map(l => l.post_id));
+      const mappedPatientPosts: CommunityPost[] = (patientPosts || []).map((p: any) => ({
+        id: p.id,
+        content: p.content,
+        author: p.patients?.name || 'Patient',
+        authorPic: p.patients?.profile_pic_url || null,
+        timestamp: p.created_at,
+        category: 'General',
+        likes: likeCountMap[p.id] || 0,
+        isLiked: likedPostIds.has(p.id),
+      }));
+      setPosts(mappedPatientPosts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
 
-  const handleLike = (postId: string) => {
-    setPosts(prev => 
-      prev.map(post => 
-        post.id === postId 
-          ? { 
-              ...post, 
-              isLiked: !post.isLiked,
-              likes: post.isLiked ? post.likes - 1 : post.likes + 1
-            }
-          : post
-      )
-    );
-  };
+      // Active Members: count patients only
+      const { count: patientCount } = await supabase.from('patients').select('id', { count: 'exact', head: true });
+      setActiveMembers(patientCount || 0);
 
-  const handlePost = () => {
-    if (!newPost.trim()) return;
+      // Posts This Week: count patient_posts in last 7 days
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const { count: postsCount } = await supabase
+        .from('patient_posts')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', weekAgo.toISOString());
+      setPostsThisWeek(postsCount || 0);
 
-    const post: CommunityPost = {
-      id: Date.now().toString(),
-      content: newPost,
-      author: user?.email?.split('@')[0] || 'Anonymous',
-      timestamp: 'Just now',
-      likes: 0,
-      comments: 0,
-      category: 'General',
-      isLiked: false
+      // Positive Feedback: placeholder (since no feedback table)
+      setPositiveFeedback(94); // static for now
+
+      setLoading(false);
     };
+    fetchStatsAndPosts();
+  }, [user]);
 
-    setPosts(prev => [post, ...prev]);
-    setNewPost('');
-    
-    toast({
-      title: "Post shared!",
-      description: "Your post has been shared with the community.",
-    });
+  // Post to Supabase (patients only)
+  const handlePost = async () => {
+    if (!newPost.trim()) return;
+    if (user?.role === 'patient' && user?.id) {
+      const { error } = await supabase.from('patient_posts').insert([{ content: newPost, patient_id: user.id }]);
+      if (error) {
+        toast({ title: 'Error', description: error.message });
+      } else {
+        setNewPost('');
+        toast({ title: 'Post shared!', description: 'Your post has been shared with the community.' });
+        setTimeout(() => window.location.reload(), 500);
+      }
+    } else {
+      toast({ title: 'Error', description: 'You must be logged in as a patient to post.' });
+    }
   };
 
-  const filteredPosts = selectedCategory === 'all' 
-    ? posts 
+  // Like/unlike post
+  const handleLike = async (postId: string, isLiked: boolean) => {
+    if (!user?.id || user?.role !== 'patient') {
+      toast({ title: 'Error', description: 'You must be logged in as a patient to like posts.' });
+      return;
+    }
+    if (isLiked) {
+      // Unlike
+      await supabase.from('patient_post_likes').delete().eq('post_id', postId).eq('patient_id', user.id);
+    } else {
+      // Like
+      await supabase.from('patient_post_likes').insert([{ post_id: postId, patient_id: user.id }]);
+    }
+    // Refresh posts
+    setTimeout(() => window.location.reload(), 300);
+  };
+
+  const filteredPosts = selectedCategory === 'all'
+    ? posts
     : posts.filter(post => post.category === selectedCategory);
 
   return (
@@ -128,21 +145,21 @@ const CommunityPage: React.FC = () => {
         <Card className="mandala-shadow">
           <CardContent className="p-6 text-center">
             <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-            <div className="text-2xl font-bold">1,247</div>
+            <div className="text-2xl font-bold">{activeMembers !== null ? activeMembers : '...'}</div>
             <div className="text-sm text-muted-foreground">Active Members</div>
           </CardContent>
         </Card>
         <Card className="mandala-shadow">
           <CardContent className="p-6 text-center">
             <MessageCircle className="h-8 w-8 text-primary mx-auto mb-2" />
-            <div className="text-2xl font-bold">856</div>
+            <div className="text-2xl font-bold">{postsThisWeek !== null ? postsThisWeek : '...'}</div>
             <div className="text-sm text-muted-foreground">Posts This Week</div>
           </CardContent>
         </Card>
         <Card className="mandala-shadow">
           <CardContent className="p-6 text-center">
             <TrendingUp className="h-8 w-8 text-primary mx-auto mb-2" />
-            <div className="text-2xl font-bold">94%</div>
+            <div className="text-2xl font-bold">{positiveFeedback !== null ? `${positiveFeedback}%` : '...'}</div>
             <div className="text-sm text-muted-foreground">Positive Feedback</div>
           </CardContent>
         </Card>
@@ -196,9 +213,13 @@ const CommunityPage: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex items-start space-x-4">
                 <Avatar>
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {post.author.charAt(0).toUpperCase()}
-                  </AvatarFallback>
+                  {post.authorPic ? (
+                    <img src={post.authorPic} alt={post.author} className="rounded-full w-10 h-10" />
+                  ) : (
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {post.author.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center justify-between">
@@ -210,29 +231,19 @@ const CommunityPage: React.FC = () => {
                     </div>
                     <div className="flex items-center text-sm text-muted-foreground">
                       <Calendar className="h-3 w-3 mr-1" />
-                      {post.timestamp}
+                      {new Date(post.timestamp).toLocaleString()}
                     </div>
                   </div>
-                  
                   <p className="text-muted-foreground">{post.content}</p>
-                  
                   <div className="flex items-center space-x-6 pt-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleLike(post.id)}
+                    <Button
+                      variant={post.isLiked ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => handleLike(post.id, post.isLiked)}
                       className={`text-muted-foreground hover:text-primary ${post.isLiked ? 'text-red-500' : ''}`}
                     >
                       <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? 'fill-current' : ''}`} />
                       {post.likes}
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
-                      <MessageCircle className="h-4 w-4 mr-1" />
-                      {post.comments}
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
-                      <Share2 className="h-4 w-4 mr-1" />
-                      Share
                     </Button>
                   </div>
                 </div>

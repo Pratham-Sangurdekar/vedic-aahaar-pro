@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Timer, User, Zap, Heart, Brain, ArrowRight, CheckCircle } from "lucide-react";
+import child from "/src/assets/child.png";
+import dog from "/src/assets/dog.png";
+import mountain from "/src/assets/mountain.png";
+import warrior from "/src/assets/warrior.png";
 
 interface YogaPose {
   id: string;
@@ -46,7 +50,7 @@ const yogaPoses: YogaPose[] = [
       'Breathe deeply and hold'
     ],
     precautions: ['Avoid if experiencing severe balance issues'],
-    image: '🧘‍♀️'
+    image: mountain
   },
   {
     id: '2',
@@ -65,7 +69,7 @@ const yogaPoses: YogaPose[] = [
       'Breathe steadily'
     ],
     precautions: ['Avoid with wrist or shoulder injuries', 'Modify if pregnant'],
-    image: '🐕'
+    image: dog
   },
   {
     id: '3',
@@ -84,7 +88,7 @@ const yogaPoses: YogaPose[] = [
       'Breathe deeply and relax'
     ],
     precautions: ['Avoid if pregnant (modify with wide knees)', 'Use props if knees are sensitive'],
-    image: '🙏'
+    image: child
   },
   {
     id: '4',
@@ -103,7 +107,7 @@ const yogaPoses: YogaPose[] = [
       'Hold and repeat on other side'
     ],
     precautions: ['Avoid with knee injuries', 'Modify if pregnant'],
-    image: '🏹'
+    image: warrior
   }
 ];
 
@@ -208,9 +212,11 @@ const YogaModule: React.FC = () => {
 
         {/* Current Pose */}
         <Card className="mandala-shadow max-w-4xl mx-auto">
-          <CardHeader className="text-center">
-            <div className="text-6xl mb-4">{selectedPose.image}</div>
-            <CardTitle className="text-2xl sanskrit-title">
+          <CardHeader >
+          <div className="image-container">
+                <img src={selectedPose.image} alt={selectedPose.name} className="object-cover" />
+              </div>
+            <CardTitle >
               {selectedPose.name}
             </CardTitle>
             <p className="text-lg text-muted-foreground italic">
@@ -355,8 +361,10 @@ const YogaModule: React.FC = () => {
               }`}
               onClick={() => setSelectedPose(pose)}
             >
-              <CardHeader className="text-center">
-                <div className="text-4xl mb-2">{pose.image}</div>
+              <CardHeader >
+                <div className="image-container">
+                <img src={pose.image} alt={pose.name} className="object-cover" />
+              </div>
                 <CardTitle className="text-sm sanskrit-title">{pose.name}</CardTitle>
                 <p className="text-xs text-muted-foreground italic">{pose.sanskritName}</p>
                 {completedPoses.has(pose.id) && (
@@ -376,8 +384,10 @@ const YogaModule: React.FC = () => {
       {/* Individual Pose Detail Modal */}
       {selectedPose && !isInSession && (
         <Card className="mandala-shadow max-w-4xl mx-auto">
-          <CardHeader className="text-center">
-            <div className="text-6xl mb-4">{selectedPose.image}</div>
+          <CardHeader>
+            <div className="image-container">
+                <img src={selectedPose.image} alt={selectedPose.name} className="object-cover" />
+              </div>
             <CardTitle className="text-2xl sanskrit-title">
               {selectedPose.name}
             </CardTitle>

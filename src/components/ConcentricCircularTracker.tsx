@@ -195,28 +195,28 @@ const ConcentricCircularTracker: React.FC<TrackerProps> = ({ userType }) => {
           max: 365,
           color: 'stroke-primary',
           label: 'Days Active',
-          radius: 140
+          radius: 152
         },
         {
           value: patientMetrics.wellnessScore,
           max: 100,
           color: 'stroke-secondary',
           label: 'Wellness Score',
-          radius: 110
+          radius: 130
         },
         {
           value: patientMetrics.completedModules,
           max: 20,
           color: 'stroke-accent',
           label: 'Completed Modules',
-          radius: 80
+          radius: 110
         },
         {
           value: patientMetrics.totalChats,
           max: 50,
           color: 'stroke-primary/70',
           label: 'Total Chats',
-          radius: 50
+          radius: 90
         }
       ];
 
@@ -238,7 +238,7 @@ const ConcentricCircularTracker: React.FC<TrackerProps> = ({ userType }) => {
                     r={circle.radius}
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="8"
+                    strokeWidth="15"
                     className="text-muted/20"
                   />
                   {/* Progress circle */}
@@ -247,7 +247,7 @@ const ConcentricCircularTracker: React.FC<TrackerProps> = ({ userType }) => {
                     cy="160"
                     r={circle.radius}
                     fill="none"
-                    strokeWidth="8"
+                    strokeWidth="10"
                     strokeLinecap="round"
                     className={`${circle.color} transition-all duration-1000 ease-out`}
                     style={{
@@ -263,7 +263,7 @@ const ConcentricCircularTracker: React.FC<TrackerProps> = ({ userType }) => {
           
           {/* Center content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <div className="text-4xl font-bold gradient-text mb-2">
+            <div className="text-6xl font-bold gradient-text mb-2">
               {patientMetrics.wellnessScore}%
             </div>
             <div className="text-sm text-muted-foreground mb-1">Wellness Score</div>
@@ -379,9 +379,9 @@ const ConcentricCircularTracker: React.FC<TrackerProps> = ({ userType }) => {
           {items.map((item, index) => (
             <div key={index} className="flex items-center gap-3">
               <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-              <div className="text-sm">
+              <div className="text-l">
                 <div className="font-medium">{item.value}</div>
-                <div className="text-muted-foreground text-xs">{item.label}</div>
+                <div className="text-muted-foreground text-2l">{item.label}</div>
               </div>
             </div>
           ))}

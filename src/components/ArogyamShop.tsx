@@ -5,6 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShoppingCart, Star, Filter, Search } from "lucide-react";
+import neem from '/src/assets/neem.jpg';
+import turmeric from '/src/assets/tumeric.jpg';
+import ashwagandha from '/src/assets/ashwagandha.jpg';
+import triphala from '/src/assets/triphala.jpg';
+import brahmi from '/src/assets/pump.jpg';
+import chyawanprash from '/src/assets/chawanprash.jpg';
 
 interface Product {
   id: string;
@@ -25,7 +31,7 @@ const sampleProducts: Product[] = [
     price: 899,
     rating: 4.8,
     category: 'Herbs',
-    image: '🌿',
+    image: ashwagandha,
     benefits: ['Stress Relief', 'Energy Boost', 'Immunity']
   },
   {
@@ -35,7 +41,7 @@ const sampleProducts: Product[] = [
     price: 649,
     rating: 4.6,
     category: 'Digestive',
-    image: '🍃',
+    image: triphala,
     benefits: ['Digestion', 'Detox', 'Antioxidant']
   },
   {
@@ -45,7 +51,7 @@ const sampleProducts: Product[] = [
     price: 399,
     rating: 4.7,
     category: 'Oils',
-    image: '🧴',
+    image: brahmi,
     benefits: ['Hair Growth', 'Stress Relief', 'Memory']
   },
   {
@@ -55,7 +61,7 @@ const sampleProducts: Product[] = [
     price: 749,
     rating: 4.9,
     category: 'Herbs',
-    image: '🧡',
+    image: turmeric,
     benefits: ['Anti-inflammatory', 'Joint Health', 'Immunity']
   },
   {
@@ -65,7 +71,7 @@ const sampleProducts: Product[] = [
     price: 1299,
     rating: 4.5,
     category: 'Immunity',
-    image: '🍯',
+    image: chyawanprash,
     benefits: ['Immunity', 'Energy', 'Longevity']
   },
   {
@@ -75,7 +81,7 @@ const sampleProducts: Product[] = [
     price: 599,
     rating: 4.4,
     category: 'Skin Care',
-    image: '🌱',
+    image: neem,
     benefits: ['Blood Purification', 'Skin Health', 'Detox']
   }
 ];
@@ -182,7 +188,9 @@ const ArogyamShop: React.FC = () => {
         {filteredProducts.map((product) => (
           <Card key={product.id} className="mandala-shadow transition-mystic hover:scale-105">
             <CardHeader>
-              <div className="text-6xl text-center mb-4">{product.image}</div>
+              <div className="image-container">
+                <img src={product.image} alt={product.name} className="object-cover" />
+              </div>
               <CardTitle className="text-lg sanskrit-title">{product.name}</CardTitle>
               <div className="flex items-center justify-between">
                 <Badge variant="secondary">{product.category}</Badge>

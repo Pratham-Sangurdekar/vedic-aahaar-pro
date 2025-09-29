@@ -46,6 +46,7 @@ const RecipesPage: React.FC = () => {
   const { toast } = useToast();
   const [recipes, setRecipes] = useState<any[]>([]);
   const [filteredRecipes, setFilteredRecipes] = useState<any[]>([]);
+  const [showDoctorRecipes, setShowDoctorRecipes] = useState(true);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCuisine, setSelectedCuisine] = useState('');
@@ -75,32 +76,28 @@ const RecipesPage: React.FC = () => {
     difficulty_level: '',
   });
 
+  // Separate doctor and website recipes
+  const [doctorRecipes, setDoctorRecipes] = useState<any[]>([]);
+  const [websiteRecipes, setWebsiteRecipes] = useState<any[]>([]);
+
+
+
   useEffect(() => {
-    // Ensure there is always something visible immediately (run once on mount)
-    if (recipes.length === 0) {
-      const samples = generateSampleRecipes(60).map(r => ({
-        is_favorited: false,
-        author_id: null,
-        calories_per_serving: r.calories_per_serving ?? null,
-        cooking_time_minutes: r.cooking_time_minutes ?? null,
-        created_at: r.created_at,
-        cuisine: r.cuisine ?? null,
-        description: r.description ?? null,
-        diet_type: r.diet_type ?? null,
-        difficulty_level: r.difficulty_level ?? null,
-        id: r.id,
-        image_url: r.image_url ?? null,
-        ingredients: r.ingredients ?? null,
-        instructions: r.instructions ?? null,
-        rasa: r.rasa ?? null,
-        title: r.title,
-      } as any));
-      setRecipes(samples as any);
-      setHasMore(false);
-    }
+    // Always fetch DB recipes on mount or user change
     fetchRecipes().catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  // When recipes change, split into doctor and website recipes
+  useEffect(() => {
+    setDoctorRecipes(recipes.filter(r => r.author_id && r.author_id !== ''));
+    const website = recipes.filter(r => !r.author_id || r.author_id === '');
+    if (website.length === 0) {
+      setWebsiteRecipes(generateSampleRecipes(60));
+    } else {
+      setWebsiteRecipes(website);
+    }
+  }, [recipes]);
 
   useEffect(() => {
     filterRecipes();
@@ -116,38 +113,17 @@ const RecipesPage: React.FC = () => {
       const { data: recipesData, error: recipesError } = await supabase
         .from('recipes')
         .select('*')
-        .order('created_at', { ascending: false })
-        .range(from, to);
+        .range(from, to)
+        .order('created_at', { ascending: false });
 
       if (recipesError) throw recipesError;
 
-      // Then, get user's favorites if logged in
-      let favorites: string[] = [];
-      if (user?.id) {
-        const { data: favoritesData, error: favoritesError } = await supabase
-          .from('recipe_favorites')
-          .select('recipe_id')
-          .eq('user_id', user.id);
-
-        if (!favoritesError) {
-          favorites = favoritesData.map(fav => fav.recipe_id);
-        }
-      }
-
-      // Mark recipes as favorited
-      const recipesWithFavorites = (recipesData || []).map(recipe => ({
-        ...recipe,
-        is_favorited: favorites.includes(recipe.id)
-      }));
-
-      let merged = recipesWithFavorites;
-
-      // If we still have fewer than 50 recipes on first page, append curated samples for browsing
-      if (pageNum === 1 && merged.length < 50) {
-        const deficit = 60 - merged.length;
-        const samples = generateSampleRecipes(Math.max(0, deficit));
-        merged = [...merged, ...samples.map(s => ({ 
-          ...s, 
+      // Merge with sample recipes if needed (for website recipes)
+      let merged: any[] = [];
+      if (recipesData && recipesData.length > 0) {
+        // Add DB recipes
+        merged = recipesData.map((s: any) => ({
+          ...s,
           author_id: s.author_id || '',
           calories_per_serving: s.calories_per_serving || 0,
           cooking_time_minutes: s.cooking_time_minutes || 0,
@@ -162,7 +138,12 @@ const RecipesPage: React.FC = () => {
           instructions: s.instructions || '',
           rasa: s.rasa || '',
           title: s.title
-        }))];
+        }));
+        // Optionally, add sample recipes if you want to always show some website recipes
+        // merged = [...merged, ...generateSampleRecipes(10)];
+      } else {
+        // If no DB recipes, show samples
+        merged = generateSampleRecipes(60);
       }
 
       if (pageNum === 1) {
@@ -171,7 +152,7 @@ const RecipesPage: React.FC = () => {
         setRecipes((prev: any[]) => [...prev, ...merged]);
       }
 
-      setHasMore(recipesWithFavorites.length === 20); // pagination applies only to DB items
+      setHasMore(merged.length === 20); // pagination applies only to DB items
     } catch (error: any) {
       console.error('Error fetching recipes:', error);
       // Fallback to curated samples so the page is never blank
@@ -434,10 +415,7 @@ const RecipesPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Ayurvedic Recipes</h1>
-          <p className="text-muted-foreground">Discover traditional recipes based on Ayurvedic principles</p>
-        </div>
+        
         {userType === 'doctor' && (
           <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
             <DialogTrigger asChild>
@@ -597,24 +575,26 @@ const RecipesPage: React.FC = () => {
         )}
       </div>
 
-      {/* Search and Filters */}
+
+      {/* Search, Filters, and Toggle */}
       <Card>
         <CardContent className="p-4">
           <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search recipes..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex gap-2 items-center">
+                <Input
+                  placeholder="Search recipes..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="w-64"
+                />
+                <Button variant="outline" size="sm" onClick={() => setShowFavoritesOnly(v => !v)}>
+                  <Heart className={`h-4 w-4 mr-1 ${showFavoritesOnly ? 'text-red-500' : ''}`} />
+                  Favorites
+                </Button>
               </div>
-              <div className="flex items-center gap-2">
-                <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+              <div className="flex gap-2 items-center">
+                <Select value={sortBy} onValueChange={v => setSortBy(v as any)}>
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
@@ -625,12 +605,21 @@ const RecipesPage: React.FC = () => {
                     <SelectItem value="calories">Calories</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="flex gap-2 items-center">
                 <Button
-                  variant={showFavoritesOnly ? "default" : "outline"}
-                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                  variant={showDoctorRecipes ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setShowDoctorRecipes(true)}
                 >
-                  <Heart className={`h-4 w-4 mr-2 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-                  Favorites
+                  Doctor Uploaded
+                </Button>
+                <Button
+                  variant={!showDoctorRecipes ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setShowDoctorRecipes(false)}
+                >
+                  Website Recipes
                 </Button>
               </div>
             </div>
@@ -641,7 +630,7 @@ const RecipesPage: React.FC = () => {
                   <SelectValue placeholder="All Cuisines" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Cuisines</SelectItem>
+                  <SelectItem value="all">All Cuisines</SelectItem>
                   {cuisines.map(cuisine => (
                     <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
                   ))}
@@ -653,7 +642,7 @@ const RecipesPage: React.FC = () => {
                   <SelectValue placeholder="All Diet Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Diet Types</SelectItem>
+                  <SelectItem value="all">All Diet Types</SelectItem>
                   {dietTypes.map(type => (
                     <SelectItem key={type} value={type}>{type}</SelectItem>
                   ))}
@@ -665,7 +654,7 @@ const RecipesPage: React.FC = () => {
                   <SelectValue placeholder="All Tastes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Tastes</SelectItem>
+                  <SelectItem value="all">All Tastes</SelectItem>
                   {rasas.map(rasa => (
                     <SelectItem key={rasa} value={rasa}>{rasa}</SelectItem>
                   ))}
@@ -677,7 +666,7 @@ const RecipesPage: React.FC = () => {
                   <SelectValue placeholder="All Difficulties" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Difficulties</SelectItem>
+                  <SelectItem value="all">All Difficulties</SelectItem>
                   {difficulties.map(difficulty => (
                     <SelectItem key={difficulty} value={difficulty}>{difficulty}</SelectItem>
                   ))}
@@ -688,15 +677,16 @@ const RecipesPage: React.FC = () => {
         </CardContent>
       </Card>
 
+
       {/* Results Count */}
       <div className="text-sm text-muted-foreground">
-        {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? 's' : ''} found
+        {(showDoctorRecipes ? doctorRecipes : websiteRecipes).length} recipe{(showDoctorRecipes ? doctorRecipes : websiteRecipes).length !== 1 ? 's' : ''}  showing
       </div>
 
       {/* Recipes Grid */}
-      {loading && filteredRecipes.length === 0 ? (
+      {loading && (showDoctorRecipes ? doctorRecipes : websiteRecipes).length === 0 ? (
         <div className="text-center py-12">Loading recipes...</div>
-      ) : filteredRecipes.length === 0 ? (
+      ) : (showDoctorRecipes ? doctorRecipes : websiteRecipes).length === 0 ? (
         <div className="text-center py-12">
           <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-medium mb-2">No recipes found</h3>
@@ -704,7 +694,7 @@ const RecipesPage: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRecipes.map((recipe) => (
+          {(showDoctorRecipes ? doctorRecipes : websiteRecipes).map((recipe) => (
             <Card key={recipe.id} className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-0">
                 {recipe.image_url && (
@@ -917,4 +907,37 @@ const RecipesPage: React.FC = () => {
   );
 };
 
-export default RecipesPage;
+// Temporary error boundary for debugging
+class RecipesPageErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: any }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { error };
+  }
+  componentDidCatch(error: any, info: any) {
+    // eslint-disable-next-line no-console
+    console.error('RecipesPage runtime error:', error, info);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ color: 'red', padding: 24 }}>
+          <h2>RecipesPage Runtime Error</h2>
+          <pre>{this.state.error && this.state.error.message}</pre>
+          <pre>{this.state.error && this.state.error.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const RecipesPageWithBoundary = (props: any) => (
+  <RecipesPageErrorBoundary>
+    <RecipesPage {...props} />
+  </RecipesPageErrorBoundary>
+);
+
+export default RecipesPageWithBoundary;
